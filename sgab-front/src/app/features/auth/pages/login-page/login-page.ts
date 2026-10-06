@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { auth } from '../../../../core/auth/auth';
 import { Router } from '@angular/router';
@@ -20,21 +20,29 @@ export class LoginPage {
     senha: ['', [Validators.required]]
   });
 
-  errorMessage = '';
+  senhaVisivel = signal(false);
+  enviando = signal(false);
+  erroLogin = signal('');
 
-  onSubmit(){
-    if (this.form.invalid) return;
-    const {email, senha} = this.form.getRawValue();
+  toggleSenhaVisivel() {
+    this.senhaVisivel.update(v => !v);
+  }
 
-    console.log(email, senha);
+  onSubmit() {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    const { email, senha } = this.form.getRawValue();
+    this.erroLogin.set('');
+    this.enviando.set(true);
 
     this.auth.login(email!, senha!).subscribe({
-      // next: () => this.router.navigateByUrl('/home'),
-      // error: () => this.errorMessage = 'Email ou senha inválidos'
-
-      next: () => alert('Parabéns! Você entrou no sistema do SGAB!'),
+      next: () => this.router.navigateByUrl('/home'),
       error: (err: HttpErrorResponse) => {
-        alert(err.error?.mensagem ?? 'Erro ao tentar fazer login');
+        this.enviando.set(false);
+        this.erroLogin.set(err.error?.mensagem ?? 'Não foi possível entrar. Verifique suas credenciais.');
       }
     });
   }

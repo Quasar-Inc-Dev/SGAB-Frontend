@@ -1,0 +1,8 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --color-brand: #8C0C00;
+  --color-brand-dark: #591812;
+  --color-surface: #F4F1EA;
+}

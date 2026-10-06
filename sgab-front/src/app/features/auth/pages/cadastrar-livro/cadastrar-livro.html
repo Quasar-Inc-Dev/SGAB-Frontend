@@ -1,0 +1,130 @@
+<app-header></app-header>
+
+<section class="mx-auto mt-6 w-full max-w-5xl flex-1 px-4 sm:px-6">
+    <h1 class="mb-4 text-2xl font-bold text-gray-900">Cadastrar livro</h1>
+
+    <form [formGroup]="form" (ngSubmit)="salvar()" novalidate class="grid grid-cols-1 gap-6 rounded-xl bg-white p-6 shadow-md md:grid-cols-[220px_1fr]">
+        <div class="flex flex-col items-center gap-3">
+            @if (capaPreview()) {
+                <img [src]="capaPreview()" alt="Capa do livro" class="aspect-[3/4] w-full rounded-lg object-cover shadow">
+            } @else {
+                <div class="flex aspect-[3/4] w-full flex-col items-center justify-center gap-2 rounded-lg bg-gray-100 text-gray-400">
+                    <svg class="h-12 w-12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5V6a2 2 0 012-2h12a2 2 0 012 2v13M4 19.5A2.5 2.5 0 006.5 22H20" />
+                    </svg>
+                    <span class="text-xs">Sem capa</span>
+                </div>
+            }
+            <label class="w-full cursor-pointer rounded-lg border border-gray-300 px-3 py-1.5 text-center text-sm font-medium text-gray-700 hover:bg-gray-50">
+                Enviar capa
+                <input type="file" accept="image/*" class="sr-only" (change)="onArquivoSelecionado($event)">
+            </label>
+        </div>
+
+        <div class="flex flex-col gap-4">
+            <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:gap-2">
+                <div class="flex flex-1 flex-col gap-1">
+                    <label for="c-isbn" class="text-sm font-medium text-gray-700">ISBN</label>
+                    <input id="c-isbn" formControlName="isbn" placeholder="Digite o ISBN para buscar os dados" class="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20">
+                </div>
+                <button
+                    type="button"
+                    (click)="buscarPorIsbn()"
+                    [disabled]="buscandoIsbn() || !form.controls.isbn.value.trim()"
+                    class="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                    {{ buscandoIsbn() ? 'Buscando...' : 'Buscar' }}
+                </button>
+            </div>
+            @if (avisoIsbn()) {
+                <p class="-mt-2 text-xs text-gray-500">{{ avisoIsbn() }}</p>
+            }
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="flex flex-col gap-1">
+                    <label for="c-pha" class="text-sm font-medium text-gray-700">PHA</label>
+                    <input id="c-pha" formControlName="pha" class="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20">
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    <label for="c-dewey" class="text-sm font-medium text-gray-700">Dewey</label>
+                    <input id="c-dewey" formControlName="dewey" class="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div class="flex flex-col gap-1 sm:col-span-2">
+                    <label for="c-titulo" class="text-sm font-medium text-gray-700">Título</label>
+                    <input id="c-titulo" formControlName="titulo" class="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20" [class.border-red-500]="form.controls.titulo.touched && form.controls.titulo.invalid">
+                </div>
+
+                <div class="flex flex-col gap-1 sm:col-span-2">
+                    <label for="c-subtitulo" class="text-sm font-medium text-gray-700">Subtítulo</label>
+                    <input id="c-subtitulo" formControlName="subtitulo" class="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20">
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    <label for="c-autor" class="text-sm font-medium text-gray-700">Autor</label>
+                    <input id="c-autor" formControlName="autor" class="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20" [class.border-red-500]="form.controls.autor.touched && form.controls.autor.invalid">
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    <label for="c-editora" class="text-sm font-medium text-gray-700">Editora</label>
+                    <input id="c-editora" formControlName="editora" class="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20">
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    <label for="c-genero" class="text-sm font-medium text-gray-700">Gênero</label>
+                    <input id="c-genero" formControlName="genero" class="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20">
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    <label for="c-area" class="text-sm font-medium text-gray-700">Área</label>
+                    <input id="c-area" formControlName="area" class="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20">
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    <label for="c-idioma" class="text-sm font-medium text-gray-700">Idioma</label>
+                    <input id="c-idioma" formControlName="idioma" class="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20">
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    <label for="c-paginas" class="text-sm font-medium text-gray-700">Páginas</label>
+                    <input id="c-paginas" type="number" min="1" formControlName="paginas" class="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20">
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    <label for="c-ano" class="text-sm font-medium text-gray-700">Ano</label>
+                    <input id="c-ano" type="number" min="0" formControlName="ano" class="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20">
+                </div>
+
+                <div class="flex flex-col gap-1 sm:col-span-2">
+                    <label for="c-tags" class="text-sm font-medium text-gray-700">Tags</label>
+                    <input id="c-tags" formControlName="tags" placeholder="Separe por vírgula" class="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20">
+                </div>
+
+                <div class="flex flex-col gap-1 sm:col-span-2">
+                    <label for="c-descricao" class="text-sm font-medium text-gray-700">Descrição</label>
+                    <textarea id="c-descricao" rows="4" formControlName="descricao" class="resize-y rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"></textarea>
+                </div>
+            </div>
+
+            @if (erroSalvar()) {
+                <p role="alert" class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{{ erroSalvar() }}</p>
+            }
+
+            <div class="flex justify-end gap-3">
+                <button type="button" (click)="cancelar()" class="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">Cancelar</button>
+                <button
+                    type="submit"
+                    [disabled]="salvando()"
+                    class="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                    {{ salvando() ? 'Cadastrando...' : 'Cadastrar livro' }}
+                </button>
+            </div>
+        </div>
+    </form>
+</section>
+
+<app-footer></app-footer>

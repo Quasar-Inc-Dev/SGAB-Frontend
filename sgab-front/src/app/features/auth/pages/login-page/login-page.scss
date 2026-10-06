@@ -1,0 +1,15 @@
+:host {
+  display: block;
+  height: 100vh;
+  background-color: var(--color-brand-dark);
+  position: relative;
+}
+
+section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  position: relative;
+}

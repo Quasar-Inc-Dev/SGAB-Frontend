@@ -1,0 +1,164 @@
+<app-header></app-header>
+
+<section class="mx-auto mt-6 w-full max-w-7xl flex-1 px-4 sm:px-6">
+    <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Acervo</h1>
+            @if (!carregando() && !erro()) {
+                <p class="text-sm text-gray-500">{{ livrosFiltrados().length }} {{ livrosFiltrados().length === 1 ? 'livro' : 'livros' }}</p>
+            }
+        </div>
+
+        <input
+            type="search"
+            [value]="busca()"
+            (input)="onBuscaChange($event)"
+            placeholder="Buscar por título ou autor"
+            aria-label="Buscar livros"
+            class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 sm:max-w-xs"
+        >
+    </div>
+
+    @if (carregando()) {
+        <p class="py-12 text-center text-gray-500">Carregando livros...</p>
+    } @else if (erro()) {
+        <p class="py-12 text-center text-red-600">Não foi possível carregar os livros. Tente novamente mais tarde.</p>
+    } @else {
+        <div class="overflow-x-auto rounded-xl bg-white shadow-md">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-gray-50 text-[11px] uppercase text-gray-600">
+                    <tr>
+                        <th scope="col" class="px-3 py-2 font-semibold">Capa</th>
+                        <th scope="col" class="px-3 py-2 font-semibold">Título</th>
+                        <th scope="col" class="hidden px-3 py-2 font-semibold md:table-cell">ISBN</th>
+                        <th scope="col" class="px-3 py-2 font-semibold">Autor</th>
+                        <th scope="col" class="hidden px-3 py-2 font-semibold md:table-cell">Editora</th>
+                        <th scope="col" class="px-3 py-2 font-semibold">Gênero</th>
+                        <th scope="col" class="hidden px-3 py-2 font-semibold md:table-cell">Páginas</th>
+                        <th scope="col" class="hidden px-3 py-2 font-semibold md:table-cell">Ano</th>
+                        <th scope="col" class="px-3 py-2 font-semibold">Status</th>
+                        <th scope="col" class="px-3 py-2 text-center font-semibold">Ações</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    @for (livro of livrosPaginados(); track livro.livroId) {
+                        <tr class="transition-colors hover:bg-gray-50">
+                            <td class="px-3 py-2">
+                                @if (livro.imgUrl) {
+                                    <img [src]="livro.imgUrl" [alt]="'Capa de ' + livro.titulo" class="h-14 w-10 rounded bg-gray-100 object-cover">
+                                } @else {
+                                    <div class="flex h-14 w-10 items-center justify-center rounded bg-brand-dark/10 font-bold text-brand-dark">
+                                        {{ livro.titulo.charAt(0) }}
+                                    </div>
+                                }
+                            </td>
+                            <td class="max-w-[16rem] truncate px-3 py-2 font-medium text-gray-900" [title]="livro.titulo">{{ livro.titulo }}</td>
+                            <td class="hidden px-3 py-2 text-gray-600 md:table-cell">{{ livro.isbn }}</td>
+                            <td class="px-3 py-2 text-gray-600">{{ livro.autor }}</td>
+                            <td class="hidden px-3 py-2 text-gray-600 md:table-cell">{{ livro.editora }}</td>
+                            <td class="px-3 py-2 text-gray-600">{{ livro.genero }}</td>
+                            <td class="hidden px-3 py-2 text-gray-600 md:table-cell">{{ livro.paginas }}</td>
+                            <td class="hidden px-3 py-2 text-gray-600 md:table-cell">{{ livro.ano }}</td>
+                            <td class="px-3 py-2">
+                                <span
+                                    class="whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-medium"
+                                    [class.bg-green-100]="livro.livroStatus"
+                                    [class.text-green-700]="livro.livroStatus"
+                                    [class.bg-gray-100]="!livro.livroStatus"
+                                    [class.text-gray-700]="!livro.livroStatus"
+                                >
+                                    {{ livro.livroStatus ? 'Ativo' : 'Inativo' }}
+                                </span>
+                            </td>
+                            <td class="px-3 py-2">
+                                <div class="flex items-center justify-center gap-1">
+                                    <button type="button" (click)="abrirEdicao(livro)" title="Editar" aria-label="Editar livro" class="rounded p-1.5 text-gray-500 hover:bg-blue-50 hover:text-blue-600">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+                                        </svg>
+                                    </button>
+                                    <button type="button" (click)="pedirDesativacao(livro)" title="Desativar" aria-label="Desativar livro" class="rounded p-1.5 text-gray-500 hover:bg-red-50 hover:text-red-600">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    } @empty {
+                        <tr>
+                            <td colspan="10" class="px-3 py-6 text-center text-gray-500">Nenhum livro encontrado.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (totalPaginas() > 1) {
+            <nav aria-label="Paginação" class="mt-4 flex items-center justify-center gap-3">
+                <button
+                    type="button"
+                    (click)="paginaAnterior()"
+                    [disabled]="paginaAtual() === 1"
+                    class="rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                    Anterior
+                </button>
+
+                <span class="text-sm text-gray-600">
+                    Página {{ paginaAtual() }} de {{ totalPaginas() }}
+                </span>
+
+                <button
+                    type="button"
+                    (click)="proximaPagina()"
+                    [disabled]="paginaAtual() === totalPaginas()"
+                    class="rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                    Próxima
+                </button>
+            </nav>
+        }
+    }
+</section>
+
+@if (livroParaDesativar(); as livro) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" (click)="cancelarDesativacao()">
+        <div
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="titulo-desativar"
+            aria-describedby="texto-desativar"
+            class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
+            (click)="$event.stopPropagation()"
+        >
+            <h2 id="titulo-desativar" class="text-lg font-semibold text-gray-900">Desativar livro</h2>
+            <p id="texto-desativar" class="mt-2 text-sm text-gray-600">
+                O livro <span class="font-medium text-gray-900">{{ livro.titulo }}</span> será desativado e deixará de aparecer como ativo no acervo. Deseja continuar?
+            </p>
+
+            @if (erroDesativacao()) {
+                <p role="alert" class="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{{ erroDesativacao() }}</p>
+            }
+
+            <div class="mt-6 flex justify-end gap-3">
+                <button type="button" (click)="cancelarDesativacao()" [disabled]="desativando()" class="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50">
+                    Cancelar
+                </button>
+                <button type="button" (click)="confirmarDesativacao()" [disabled]="desativando()" class="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60">
+                    {{ desativando() ? 'Desativando...' : 'Sim, desativar' }}
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (livroEditando(); as livro) {
+    <app-editar-livro-modal
+        [livro]="livro"
+        (fechar)="fecharEdicao()"
+        (salvo)="aoSalvarLivro($event)"
+    />
+}
+
+<app-footer></app-footer>
