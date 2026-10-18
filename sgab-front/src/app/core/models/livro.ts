@@ -13,6 +13,7 @@ export interface Livro {
     area: string,
     paginas: number,
     ano: number,
+    qtdUnidade: number,
     genero: string,
     tags: string
     imgUrl: string

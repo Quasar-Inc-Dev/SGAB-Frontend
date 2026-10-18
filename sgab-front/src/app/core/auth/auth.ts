@@ -51,6 +51,15 @@ export class auth {
         return payload.tipoUsuario ?? null;
     }
 
+    getEmail(): string | null {
+        if (!this.isBrowser) return null;
+        const token = this.getToken();
+
+        if (!token) return null;
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return payload.sub ?? null;
+    }
+
     isFuncionario(): boolean {
         const role = this.getRole();
         return role === 'ADMINISTRADOR' || role === 'FUNCIONARIO';

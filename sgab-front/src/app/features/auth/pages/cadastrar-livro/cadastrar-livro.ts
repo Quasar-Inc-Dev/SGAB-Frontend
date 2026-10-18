@@ -32,6 +32,7 @@ export class CadastrarLivro implements OnDestroy {
     area: [''],
     paginas: [0, [Validators.required, Validators.min(1)]],
     ano: [0, [Validators.required, Validators.min(0)]],
+    qtdUnidade: [0, [Validators.required, Validators.min(0)]],
     genero: [''],
     tags: [''],
   });

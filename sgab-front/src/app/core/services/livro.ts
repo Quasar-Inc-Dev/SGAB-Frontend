@@ -24,7 +24,11 @@ export class LivroService {
     }
 
     desativarLivro(id: number) {
-        return this.http.patch(`${this.apiUrl}api/livros/desativar/${id}`, null);
+        return this.http.patch(`${this.apiUrl}api/livros/${id}/desativar`, null);
+    }
+
+    buscarPorId(id: number) {
+        return this.http.get<Livro>(`${this.apiUrl}api/livros/${id}`);
     }
 
     cadastrar(dados: Partial<Livro>) {

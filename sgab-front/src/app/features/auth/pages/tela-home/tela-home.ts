@@ -1,6 +1,7 @@
 import { Component, computed, inject, OnInit, PLATFORM_ID, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { Header } from '../../../../shared/header/header';
 import { LivroService } from '../../../../core/services/livro';
 import { Livro } from '../../../../core/models/livro';
@@ -8,7 +9,7 @@ import { Footer } from '../../../../shared/footer/footer';
 
 @Component({
   selector: 'app-tela-home',
-  imports: [Header, Footer, FormsModule],
+  imports: [Header, Footer, FormsModule, RouterLink],
   templateUrl: './tela-home.html',
   styleUrl: './tela-home.scss',
 })
@@ -22,6 +23,7 @@ export class TelaHome implements OnInit {
 
   entrou = signal(false);
   saindo = signal(false);
+  private readonly chaveSplashVisto = 'sgab_splash_visto';
 
   busca = signal('');
   generoSelecionado = signal('');
@@ -53,6 +55,7 @@ export class TelaHome implements OnInit {
   entrar() {
     if (this.saindo()) return;
     this.saindo.set(true);
+    sessionStorage.setItem(this.chaveSplashVisto, '1');
     setTimeout(() => this.entrou.set(true), 700);
   }
 
@@ -65,9 +68,11 @@ export class TelaHome implements OnInit {
   ngOnInit(): void {
     if (!this.isBrowser) return;
 
+    if (sessionStorage.getItem(this.chaveSplashVisto)) this.entrou.set(true);
+
     this.livroService.getAll().subscribe({
       next: (livros) => {
-        this.livros.set(livros);
+        this.livros.set(livros.filter(livro => livro.livroStatus));
         this.carregando.set(false);
       },
       error: () => {
