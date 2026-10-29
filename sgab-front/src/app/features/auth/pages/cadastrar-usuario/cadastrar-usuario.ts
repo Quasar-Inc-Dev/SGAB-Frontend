@@ -26,7 +26,7 @@ export class CadastrarUsuario {
   form = this.fb.nonNullable.group({
     nome: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
-    cpf: ['', Validators.required],
+    cpf: ['', [Validators.required, Validators.pattern(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/)]],
     dataNascimento: ['', Validators.required],
     genero: ['', Validators.required],
     tipoLeitor: ['', Validators.required],
@@ -78,7 +78,7 @@ export class CadastrarUsuario {
 
     const { confirmarSenha, ...dados } = this.form.getRawValue();
 
-    this.usuarioService.cadastrarLeitor(dados).subscribe({
+    this.usuarioService.cadastrarLeitor({ ...dados, cpf: dados.cpf.replace(/\D/g, '') }).subscribe({
       next: () => {
         this.enviando.set(false);
         this.sucesso.set(true);

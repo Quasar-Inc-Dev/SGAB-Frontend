@@ -11,6 +11,11 @@
       [class.hidden]="!menuMobileAberto()"
       [class.flex]="menuMobileAberto()"
     >
+      @if (auth.isLeitor()) {
+        <a routerLink="/home" (click)="fecharMenus()" class="rounded-md px-3 py-2 text-white/90 hover:bg-white/10 hover:text-white md:p-0 md:hover:bg-transparent md:hover:underline md:underline-offset-4">Início</a>
+        <a routerLink="/minhas-solicitacoes" (click)="fecharMenus()" class="rounded-md px-3 py-2 text-white/90 hover:bg-white/10 hover:text-white md:p-0 md:hover:bg-transparent md:hover:underline md:underline-offset-4">Minhas solicitações</a>
+      }
+
       @if (auth.isFuncionario()) {
         <div class="relative">
           <button
@@ -48,11 +53,13 @@
 
           @if (menuNavUsuarioAberto()) {
             <div class="mt-1 flex flex-col rounded-md bg-white py-1 text-gray-900 shadow-lg md:absolute md:left-0 md:top-full md:mt-2 md:w-40">
-              <a href="#" (click)="fecharMenus()" class="px-4 py-2 hover:bg-gray-100">Listar</a>
+              <a routerLink="/usuarios" (click)="fecharMenus()" class="px-4 py-2 hover:bg-gray-100">Listar</a>
               <a routerLink="/usuarios/cadastro" (click)="fecharMenus()" class="px-4 py-2 hover:bg-gray-100">Cadastrar</a>
             </div>
           }
         </div>
+
+        <a routerLink="/solicitacoes" (click)="fecharMenus()" class="rounded-md px-3 py-2 text-white/90 hover:bg-white/10 hover:text-white md:p-0 md:hover:bg-transparent md:hover:underline md:underline-offset-4">Solicitações</a>
 
         <a href="#" class="rounded-md px-3 py-2 text-white/90 hover:bg-white/10 hover:text-white md:p-0 md:hover:bg-transparent md:hover:underline md:underline-offset-4">Relatórios</a>
       }

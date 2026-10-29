@@ -36,6 +36,7 @@
                         <th scope="col" class="px-3 py-2 font-semibold">Gênero</th>
                         <th scope="col" class="hidden px-3 py-2 font-semibold md:table-cell">Páginas</th>
                         <th scope="col" class="hidden px-3 py-2 font-semibold md:table-cell">Ano</th>
+                        <th scope="col" class="px-3 py-2 font-semibold">Disponíveis</th>
                         <th scope="col" class="px-3 py-2 font-semibold">Status</th>
                         <th scope="col" class="px-3 py-2 text-center font-semibold">Ações</th>
                     </tr>
@@ -59,15 +60,16 @@
                             <td class="px-3 py-2 text-gray-600">{{ livro.genero }}</td>
                             <td class="hidden px-3 py-2 text-gray-600 md:table-cell">{{ livro.paginas }}</td>
                             <td class="hidden px-3 py-2 text-gray-600 md:table-cell">{{ livro.ano }}</td>
+                            <td class="whitespace-nowrap px-3 py-2 text-gray-600">{{ livro.exemplaresDisponiveis }} de {{ livro.totalExemplares }}</td>
                             <td class="px-3 py-2">
                                 <span
                                     class="whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-medium"
-                                    [class.bg-green-100]="livro.livroStatus"
-                                    [class.text-green-700]="livro.livroStatus"
-                                    [class.bg-gray-100]="!livro.livroStatus"
-                                    [class.text-gray-700]="!livro.livroStatus"
+                                    [class.bg-green-100]="livro.livroStatus === 'ATIVO'"
+                                    [class.text-green-700]="livro.livroStatus === 'ATIVO'"
+                                    [class.bg-gray-100]="livro.livroStatus !== 'ATIVO'"
+                                    [class.text-gray-700]="livro.livroStatus !== 'ATIVO'"
                                 >
-                                    {{ livro.livroStatus ? 'Ativo' : 'Inativo' }}
+                                    {{ livro.livroStatus === 'ATIVO' ? 'Ativo' : 'Inativo' }}
                                 </span>
                             </td>
                             <td class="px-3 py-2">
@@ -87,7 +89,7 @@
                         </tr>
                     } @empty {
                         <tr>
-                            <td colspan="10" class="px-3 py-6 text-center text-gray-500">Nenhum livro encontrado.</td>
+                            <td colspan="11"class="px-3 py-6 text-center text-gray-500">Nenhum livro encontrado.</td>
                         </tr>
                     }
                 </tbody>

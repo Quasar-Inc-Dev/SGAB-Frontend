@@ -4,6 +4,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Observable, of, switchMap } from 'rxjs';
 import { Livro } from '../../core/models/livro';
 import { LivroService } from '../../core/services/livro';
+import { mensagemErro } from '../../core/utils/mensagem-erro';
 
 @Component({
   selector: 'app-editar-livro-modal',
@@ -30,10 +31,9 @@ export class EditarLivroModal implements OnInit, OnDestroy {
     area: [''],
     paginas: [0, [Validators.required, Validators.min(1)]],
     ano: [0, [Validators.required, Validators.min(0)]],
-    qtdUnidade: [0, [Validators.required, Validators.min(0)]],
     genero: [''],
     tags: [''],
-    livroStatus: [true],
+    ativo: [true],
   });
 
   salvando = signal(false);
@@ -55,10 +55,9 @@ export class EditarLivroModal implements OnInit, OnDestroy {
       area: l.area ?? '',
       paginas: l.paginas ?? 0,
       ano: l.ano ?? 0,
-      qtdUnidade: l.qtdUnidade ?? 0,
       genero: l.genero ?? '',
       tags: l.tags ?? '',
-      livroStatus: l.livroStatus ?? false,
+      ativo: l.livroStatus === 'ATIVO',
     });
     this.capaPreview.set(l.imgUrl || null);
   }
@@ -90,10 +89,16 @@ export class EditarLivroModal implements OnInit, OnDestroy {
       pha: livro.pha,
       dewey: livro.dewey,
     };
+    const { ativo, ...campos } = this.form.getRawValue();
     this.salvando.set(true);
     this.erro.set('');
 
-    this.livroService.atualizar(id, { ...camposDesabilitados, ...this.form.getRawValue() }).pipe(
+    this.livroService.atualizar(id, {
+      ...camposDesabilitados,
+      ...campos,
+      imgUrl: livro.imgUrl,
+      livroStatus: ativo ? 'ATIVO' : 'INATIVO',
+    }).pipe(
       switchMap((atualizado): Observable<Livro> =>
         this.arquivoCapa ? this.livroService.atualizarCapa(id, this.arquivoCapa) : of(atualizado)
       )
@@ -101,7 +106,7 @@ export class EditarLivroModal implements OnInit, OnDestroy {
       next: (atualizado) => this.salvo.emit(atualizado),
       error: (err: HttpErrorResponse) => {
         this.salvando.set(false);
-        this.erro.set(err.error?.mensagem ?? 'Não foi possível salvar as alterações.');
+        this.erro.set(mensagemErro(err, 'Não foi possível salvar as alterações.'));
       },
     });
   }

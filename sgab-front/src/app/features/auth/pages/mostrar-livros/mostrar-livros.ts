@@ -1,10 +1,12 @@
 import { Component, computed, inject, OnInit, PLATFORM_ID, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Header } from '../../../../shared/header/header';
 import { Footer } from '../../../../shared/footer/footer';
 import { LivroService } from '../../../../core/services/livro';
 import { Livro } from '../../../../core/models/livro';
 import { EditarLivroModal } from '../../../../shared/editar-livro-modal/editar-livro-modal';
+import { mensagemErro } from '../../../../core/utils/mensagem-erro';
 
 @Component({
   selector: 'app-mostrar-livros',
@@ -111,14 +113,14 @@ export class MostrarLivros implements OnInit {
     this.livroService.desativarLivro(livro.livroId).subscribe({
       next: () => {
         this.livros.update(lista =>
-          lista.map(l => (l.livroId === livro.livroId ? { ...l, livroStatus: false } : l))
+          lista.map(l => (l.livroId === livro.livroId ? { ...l, livroStatus: 'INATIVO' } : l))
         );
         this.desativando.set(false);
         this.livroParaDesativar.set(null);
       },
-      error: () => {
+      error: (err: HttpErrorResponse) => {
         this.desativando.set(false);
-        this.erroDesativacao.set('Não foi possível desativar o livro. Tente novamente.');
+        this.erroDesativacao.set(mensagemErro(err, 'Não foi possível desativar o livro. Tente novamente.'));
       },
     });
   }

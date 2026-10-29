@@ -1,0 +1,231 @@
+<app-header></app-header>
+
+<section class="mx-auto mt-6 w-full max-w-7xl px-4 sm:px-6">
+    <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Usuários</h1>
+            @if (!carregando() && !erro()) {
+                <p class="text-sm text-gray-500">{{ leitoresFiltrados().length }} {{ leitoresFiltrados().length === 1 ? 'leitor' : 'leitores' }}</p>
+            }
+        </div>
+
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <input
+                type="search"
+                [value]="busca()"
+                (input)="onBuscaChange($event)"
+                placeholder="Buscar por nome, e-mail ou CPF"
+                aria-label="Buscar usuários"
+                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 sm:w-72"
+            >
+            <select
+                [value]="filtroTipo()"
+                (change)="onTipoChange($event)"
+                aria-label="Filtrar por tipo de leitor"
+                class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+            >
+                <option value="">Todos os tipos</option>
+                @for (t of tiposLeitor(); track t.valor) {
+                    <option [value]="t.valor">{{ t.label }}</option>
+                }
+            </select>
+            <a routerLink="/usuarios/cadastro" class="whitespace-nowrap rounded-lg bg-brand px-4 py-2 text-center text-sm font-semibold text-white hover:bg-brand-dark">
+                Cadastrar usuário
+            </a>
+        </div>
+    </div>
+
+    <div class="mb-4 flex flex-wrap gap-2">
+        @for (opcao of opcoesStatus(); track opcao.valor) {
+            <button type="button" (click)="mudarStatus(opcao.valor)"
+                class="rounded-full border px-3 py-1 text-xs font-medium"
+                [class.border-brand]="filtroStatus() === opcao.valor" [class.bg-brand]="filtroStatus() === opcao.valor" [class.text-white]="filtroStatus() === opcao.valor"
+                [class.border-gray-300]="filtroStatus() !== opcao.valor" [class.bg-white]="filtroStatus() !== opcao.valor" [class.text-gray-700]="filtroStatus() !== opcao.valor">
+                {{ opcao.label }} ({{ opcao.total }})
+            </button>
+        }
+    </div>
+
+    @if (carregando()) {
+        <p class="py-12 text-center text-gray-500">Carregando usuários...</p>
+    } @else if (erro()) {
+        <p class="py-12 text-center text-red-600">Não foi possível carregar os usuários. Tente novamente mais tarde.</p>
+    } @else {
+        <div class="overflow-x-auto rounded-xl bg-white shadow-md">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-gray-50 text-[11px] uppercase text-gray-600">
+                    <tr>
+                        <th scope="col" class="px-3 py-2 font-semibold">Nome</th>
+                        <th scope="col" class="hidden px-3 py-2 font-semibold md:table-cell">E-mail</th>
+                        <th scope="col" class="px-3 py-2 font-semibold">CPF</th>
+                        <th scope="col" class="px-3 py-2 font-semibold">Tipo</th>
+                        <th scope="col" class="hidden px-3 py-2 font-semibold lg:table-cell">Gênero</th>
+                        <th scope="col" class="hidden px-3 py-2 font-semibold lg:table-cell">Nascimento</th>
+                        <th scope="col" class="px-3 py-2 font-semibold">Status</th>
+                        <th scope="col" class="px-3 py-2 text-center font-semibold">Ações</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    @for (leitor of leitoresPaginados(); track leitor.id) {
+                        <tr class="transition-colors hover:bg-gray-50" [class.opacity-60]="!leitor.statusLeitor">
+                            <td class="px-3 py-2">
+                                <div class="flex items-center gap-2">
+                                    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-dark/10 text-xs font-bold text-brand-dark">
+                                        {{ leitor.nome.charAt(0).toUpperCase() }}
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="truncate font-medium text-gray-900">{{ leitor.nome }}</p>
+                                        <p class="truncate text-[11px] text-gray-500 md:hidden">{{ leitor.email }}</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="hidden px-3 py-2 text-gray-600 md:table-cell">{{ leitor.email }}</td>
+                            <td class="whitespace-nowrap px-3 py-2 text-gray-600">{{ formatarCpf(leitor.cpf) }}</td>
+                            <td class="px-3 py-2 text-gray-600">{{ rotulo(leitor.tipoLeitor) }}</td>
+                            <td class="hidden px-3 py-2 text-gray-600 lg:table-cell">{{ rotulo(leitor.genero) }}</td>
+                            <td class="hidden whitespace-nowrap px-3 py-2 text-gray-600 lg:table-cell">{{ leitor.dataNascimento | date:'dd/MM/yyyy' }}</td>
+                            <td class="px-3 py-2">
+                                <span class="whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-medium"
+                                    [class.bg-green-100]="leitor.statusLeitor" [class.text-green-700]="leitor.statusLeitor"
+                                    [class.bg-gray-100]="!leitor.statusLeitor" [class.text-gray-700]="!leitor.statusLeitor">
+                                    {{ leitor.statusLeitor ? 'Ativo' : 'Inativo' }}
+                                </span>
+                            </td>
+                            <td class="px-3 py-2">
+                                <div class="flex items-center justify-center gap-1">
+                                    <button type="button" (click)="abrirEdicao(leitor)" title="Editar" aria-label="Editar usuário" class="rounded p-1.5 text-gray-500 hover:bg-blue-50 hover:text-blue-600">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+                                        </svg>
+                                    </button>
+                                    @if (leitor.statusLeitor) {
+                                        <button type="button" (click)="pedirDesativacao(leitor)" title="Desativar" aria-label="Desativar usuário" class="rounded p-1.5 text-gray-500 hover:bg-red-50 hover:text-red-600">
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                                <circle cx="12" cy="12" r="9" />
+                                                <path stroke-linecap="round" d="M5.6 5.6l12.8 12.8" />
+                                            </svg>
+                                        </button>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    } @empty {
+                        <tr>
+                            <td colspan="8" class="px-3 py-6 text-center text-gray-500">Nenhum usuário encontrado.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (totalPaginas() > 1) {
+            <nav aria-label="Paginação" class="mt-4 flex items-center justify-center gap-3">
+                <button type="button" (click)="irParaPagina(paginaAtual() - 1)" [disabled]="paginaAtual() === 1"
+                    class="rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40">
+                    Anterior
+                </button>
+                <span class="text-sm text-gray-600">Página {{ paginaAtual() }} de {{ totalPaginas() }}</span>
+                <button type="button" (click)="irParaPagina(paginaAtual() + 1)" [disabled]="paginaAtual() === totalPaginas()"
+                    class="rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40">
+                    Próxima
+                </button>
+            </nav>
+        }
+    }
+</section>
+
+@if (leitorEditando(); as leitor) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" (click)="fecharEdicao()">
+        <form
+            [formGroup]="form"
+            (ngSubmit)="salvarEdicao()"
+            novalidate
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="titulo-editar-usuario"
+            class="w-full max-w-lg rounded-2xl bg-white shadow-2xl"
+            (click)="$event.stopPropagation()"
+        >
+            <header class="border-b border-gray-200 px-5 py-4">
+                <h2 id="titulo-editar-usuario" class="text-lg font-semibold text-gray-900">Editar usuário</h2>
+                <p class="text-xs text-gray-500">{{ leitor.email }} · CPF {{ formatarCpf(leitor.cpf) }}</p>
+            </header>
+
+            <div class="grid grid-cols-1 gap-4 px-5 py-4 sm:grid-cols-2">
+                <div class="flex flex-col gap-1 sm:col-span-2">
+                    <label for="ed-u-nome" class="text-sm font-medium text-gray-700">Nome completo</label>
+                    <input id="ed-u-nome" formControlName="nome" class="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20" [class.border-red-500]="form.controls.nome.touched && form.controls.nome.invalid">
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    <label for="ed-u-nascimento" class="text-sm font-medium text-gray-700">Data de nascimento</label>
+                    <input id="ed-u-nascimento" type="date" formControlName="dataNascimento" class="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20" [class.border-red-500]="form.controls.dataNascimento.touched && form.controls.dataNascimento.invalid">
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    <label for="ed-u-genero" class="text-sm font-medium text-gray-700">Gênero</label>
+                    <select id="ed-u-genero" formControlName="genero" class="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20" [class.border-red-500]="form.controls.genero.touched && form.controls.genero.invalid">
+                        <option value="" disabled>Selecione</option>
+                        @for (opcao of generos; track opcao.valor) {
+                            <option [value]="opcao.valor">{{ opcao.label }}</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="flex flex-col gap-1 sm:col-span-2">
+                    <label for="ed-u-tipo" class="text-sm font-medium text-gray-700">Tipo de leitor</label>
+                    <select id="ed-u-tipo" formControlName="tipoLeitor" class="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20" [class.border-red-500]="form.controls.tipoLeitor.touched && form.controls.tipoLeitor.invalid">
+                        <option value="" disabled>Selecione</option>
+                        @for (opcao of tiposLeitor(); track opcao.valor) {
+                            <option [value]="opcao.valor">{{ opcao.label }}</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            @if (erroEdicao()) {
+                <p role="alert" class="mx-5 mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{{ erroEdicao() }}</p>
+            }
+
+            <footer class="flex justify-end gap-3 border-t border-gray-200 px-5 py-4">
+                <button type="button" (click)="fecharEdicao()" [disabled]="salvando()" class="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50">Cancelar</button>
+                <button type="submit" [disabled]="salvando()" class="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60">
+                    {{ salvando() ? 'Salvando...' : 'Salvar' }}
+                </button>
+            </footer>
+        </form>
+    </div>
+}
+
+@if (leitorParaDesativar(); as leitor) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" (click)="cancelarDesativacao()">
+        <div
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="titulo-desativar-usuario"
+            aria-describedby="texto-desativar-usuario"
+            class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
+            (click)="$event.stopPropagation()"
+        >
+            <h2 id="titulo-desativar-usuario" class="text-lg font-semibold text-gray-900">Desativar usuário</h2>
+            <p id="texto-desativar-usuario" class="mt-2 text-sm text-gray-600">
+                <span class="font-medium text-gray-900">{{ leitor.nome }}</span> não conseguirá mais entrar no sistema nem fazer solicitações. Deseja continuar?
+            </p>
+
+            @if (erroDesativacao()) {
+                <p role="alert" class="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{{ erroDesativacao() }}</p>
+            }
+
+            <div class="mt-6 flex justify-end gap-3">
+                <button type="button" (click)="cancelarDesativacao()" [disabled]="desativando()" class="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50">
+                    Cancelar
+                </button>
+                <button type="button" (click)="confirmarDesativacao()" [disabled]="desativando()" class="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60">
+                    {{ desativando() ? 'Desativando...' : 'Sim, desativar' }}
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<app-footer></app-footer>

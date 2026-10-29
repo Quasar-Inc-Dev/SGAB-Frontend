@@ -1,6 +1,6 @@
 import { HttpClient } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
-import { Livro, LivroIsbnConsulta } from "../models/livro";
+import { Exemplar, Livro, LivroIsbnConsulta, LivroRequest } from "../models/livro";
 
 
 
@@ -13,7 +13,7 @@ export class LivroService {
         return this.http.get<Livro[]>(this.apiUrl + "api/livros")
     }
 
-    atualizar(id: number, dados: Partial<Livro>) {
+    atualizar(id: number, dados: LivroRequest) {
         return this.http.put<Livro>(`${this.apiUrl}api/livros/${id}`, dados);
     }
 
@@ -27,15 +27,27 @@ export class LivroService {
         return this.http.patch(`${this.apiUrl}api/livros/${id}/desativar`, null);
     }
 
+    excluir(id: number) {
+        return this.http.delete<void>(`${this.apiUrl}api/livros/${id}`);
+    }
+
     buscarPorId(id: number) {
         return this.http.get<Livro>(`${this.apiUrl}api/livros/${id}`);
     }
 
-    cadastrar(dados: Partial<Livro>) {
+    cadastrar(dados: LivroRequest) {
         return this.http.post<Livro>(`${this.apiUrl}api/livros`, dados);
     }
 
     buscarPorIsbn(isbn: string) {
         return this.http.get<LivroIsbnConsulta>(`${this.apiUrl}api/livros/isbn/${isbn}`);
+    }
+
+    listarExemplares(id: number) {
+        return this.http.get<Exemplar[]>(`${this.apiUrl}api/livros/${id}/exemplares`);
+    }
+
+    adicionarExemplares(id: number, quantidade: number) {
+        return this.http.post<Exemplar[]>(`${this.apiUrl}api/livros/${id}/exemplares`, null, { params: { quantidade } });
     }
 }

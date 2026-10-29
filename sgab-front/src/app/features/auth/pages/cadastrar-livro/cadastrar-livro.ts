@@ -7,6 +7,7 @@ import { Header } from '../../../../shared/header/header';
 import { Footer } from '../../../../shared/footer/footer';
 import { LivroService } from '../../../../core/services/livro';
 import { Livro } from '../../../../core/models/livro';
+import { mensagemErro } from '../../../../core/utils/mensagem-erro';
 
 @Component({
   selector: 'app-cadastrar-livro',
@@ -32,7 +33,7 @@ export class CadastrarLivro implements OnDestroy {
     area: [''],
     paginas: [0, [Validators.required, Validators.min(1)]],
     ano: [0, [Validators.required, Validators.min(0)]],
-    qtdUnidade: [0, [Validators.required, Validators.min(0)]],
+    quantidadeExemplares: [1, [Validators.required, Validators.min(1)]],
     genero: [''],
     tags: [''],
   });
@@ -100,7 +101,7 @@ export class CadastrarLivro implements OnDestroy {
     this.salvando.set(true);
     this.erroSalvar.set('');
 
-    this.livroService.cadastrar({ ...this.form.getRawValue(), livroStatus: true }).pipe(
+    this.livroService.cadastrar({ ...this.form.getRawValue(), livroStatus: 'ATIVO' }).pipe(
       switchMap((criado): Observable<Livro> =>
         this.arquivoCapa ? this.livroService.atualizarCapa(criado.livroId, this.arquivoCapa) : of(criado)
       )
@@ -108,7 +109,7 @@ export class CadastrarLivro implements OnDestroy {
       next: () => this.router.navigateByUrl('/mostrar-livros'),
       error: (err: HttpErrorResponse) => {
         this.salvando.set(false);
-        this.erroSalvar.set(err.error?.mensagem ?? 'Não foi possível cadastrar o livro.');
+        this.erroSalvar.set(mensagemErro(err, 'Não foi possível cadastrar o livro.'));
       },
     });
   }

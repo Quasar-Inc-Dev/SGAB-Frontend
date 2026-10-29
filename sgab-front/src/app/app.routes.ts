@@ -7,7 +7,10 @@ import { VisualizarLivro } from './features/auth/pages/visualizar-livro/visualiz
 import { MeusDados } from './features/auth/pages/meus-dados/meus-dados';
 import { CadastroUsuario } from './features/auth/pages/cadastro-usuario/cadastro-usuario';
 import { CadastrarUsuario } from './features/auth/pages/cadastrar-usuario/cadastrar-usuario';
-import { authGuard } from './core/guards/auth-guards';
+import { Solicitacoes } from './features/auth/pages/solicitacoes/solicitacoes';
+import { MinhasSolicitacoes } from './features/auth/pages/minhas-solicitacoes/minhas-solicitacoes';
+import { ListarUsuarios } from './features/auth/pages/listar-usuarios/listar-usuarios';
+import { authGuard, funcionarioGuard, leitorGuard } from './core/guards/auth-guards';
 
 export const routes: Routes = [
     {path: '',component: LoginPage},
@@ -17,6 +20,9 @@ export const routes: Routes = [
     {path: 'cadastrar-livro', component: CadastrarLivro, canActivate: [authGuard]},
     {path: 'livro/:id', component: VisualizarLivro, canActivate: [authGuard]},
     {path: 'meus-dados', component: MeusDados, canActivate: [authGuard]},
-    {path: 'usuarios/cadastro', component: CadastrarUsuario, canActivate: [authGuard]}
+    {path: 'usuarios', component: ListarUsuarios, canActivate: [authGuard, funcionarioGuard]},
+    {path: 'usuarios/cadastro', component: CadastrarUsuario, canActivate: [authGuard]},
+    {path: 'solicitacoes', component: Solicitacoes, canActivate: [authGuard, funcionarioGuard]},
+    {path: 'minhas-solicitacoes', component: MinhasSolicitacoes, canActivate: [authGuard, leitorGuard]}
 ];
 

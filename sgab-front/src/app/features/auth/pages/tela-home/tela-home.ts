@@ -72,7 +72,7 @@ export class TelaHome implements OnInit {
 
     this.livroService.getAll().subscribe({
       next: (livros) => {
-        this.livros.set(livros.filter(livro => livro.livroStatus));
+        this.livros.set(livros.filter(livro => livro.livroStatus === 'ATIVO'));
         this.carregando.set(false);
       },
       error: () => {

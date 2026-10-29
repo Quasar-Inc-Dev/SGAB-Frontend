@@ -64,4 +64,8 @@ export class auth {
         const role = this.getRole();
         return role === 'ADMINISTRADOR' || role === 'FUNCIONARIO';
     }
+
+    isLeitor(): boolean {
+        return this.getRole() === 'LEITOR';
+    }
 }

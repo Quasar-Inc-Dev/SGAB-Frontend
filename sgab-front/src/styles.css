@@ -6,3 +6,11 @@
   --color-brand-dark: #591812;
   --color-surface: #F4F1EA;
 }
+
+/* Páginas com footer ocupam pelo menos a altura da tela, em coluna,
+   para o footer (margin-top: auto) ficar sempre no fim */
+app-root > :has(> app-footer) {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
