@@ -6,12 +6,14 @@ import { tap } from "rxjs";
 
 
 interface LoginResponse { token: string}
+interface MensagemResponse { mensagem: string }
 
 @Injectable({providedIn: 'root'})
 export class auth {
     private http = inject(HttpClient);
     private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
     private readonly apiUrl = 'http://localhost:8080/login';
+    private readonly apiBase = 'http://localhost:8080';
     private readonly tokenKey = 'jwt_token'
 
     login(email: string, senha: string) {
@@ -20,6 +22,11 @@ export class auth {
                 if (this.isBrowser) localStorage.setItem(this.tokenKey, res.token);
             })
         );
+    }
+
+    // Dispara o e-mail com o link de redefinição (o back responde igual, exista ou não o e-mail)
+    solicitarRedefinicaoSenha(email: string) {
+        return this.http.post<MensagemResponse>(`${this.apiBase}/esqueci-senha`, { email });
     }
 
     getToken(): string | null {

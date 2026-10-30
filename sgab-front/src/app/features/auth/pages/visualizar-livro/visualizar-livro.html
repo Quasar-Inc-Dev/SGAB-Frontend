@@ -14,7 +14,7 @@
         <div class="grid grid-cols-1 gap-6 rounded-xl bg-white p-6 shadow-md md:grid-cols-[220px_1fr]">
             <div class="flex flex-col items-center">
                 @if (livro()!.imgUrl) {
-                    <img [src]="livro()!.imgUrl" [alt]="'Capa de ' + livro()!.titulo" class="aspect-[3/4] w-full rounded-lg object-cover shadow">
+                    <img [src]="livro()!.imgUrl | capa"[alt]="'Capa de ' + livro()!.titulo" class="aspect-[3/4] w-full rounded-lg object-cover shadow">
                 } @else {
                     <div class="flex aspect-[3/4] w-full items-center justify-center rounded-lg bg-brand-dark/10 text-5xl font-bold text-brand-dark">
                         {{ livro()!.titulo.charAt(0) }}

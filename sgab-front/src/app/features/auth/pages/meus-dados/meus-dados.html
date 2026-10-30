@@ -31,6 +31,31 @@
                 }
             </div>
         </div>
+
+        <div class="mt-6 rounded-xl bg-white p-6 shadow-md">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-900">Senha</h2>
+                    <p class="text-sm text-gray-500">Vamos enviar um link para o seu e-mail para você criar uma nova senha.</p>
+                </div>
+                <button
+                    type="button"
+                    (click)="solicitarRedefinicaoSenha()"
+                    [disabled]="enviandoRedefinicao() || redefinicaoEnviada()"
+                    class="shrink-0 rounded-lg border border-brand px-4 py-2 text-sm font-semibold text-brand hover:bg-brand/10 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                    {{ enviandoRedefinicao() ? 'Enviando...' : redefinicaoEnviada() ? 'E-mail enviado' : 'Redefinir senha' }}
+                </button>
+            </div>
+
+            @if (mensagemRedefinicao(); as msg) {
+                <p role="status" class="mt-4 rounded-lg border px-3 py-2 text-sm"
+                    [class.border-green-200]="msg.tipo === 'sucesso'" [class.bg-green-50]="msg.tipo === 'sucesso'" [class.text-green-700]="msg.tipo === 'sucesso'"
+                    [class.border-red-200]="msg.tipo === 'erro'" [class.bg-red-50]="msg.tipo === 'erro'" [class.text-red-700]="msg.tipo === 'erro'">
+                    {{ msg.texto }}
+                </p>
+            }
+        </div>
     }
 </section>
 

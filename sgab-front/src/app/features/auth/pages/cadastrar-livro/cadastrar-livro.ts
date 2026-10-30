@@ -8,6 +8,7 @@ import { Footer } from '../../../../shared/footer/footer';
 import { LivroService } from '../../../../core/services/livro';
 import { Livro } from '../../../../core/models/livro';
 import { mensagemErro } from '../../../../core/utils/mensagem-erro';
+import { validarCapa } from '../../../../core/utils/validar-capa';
 
 @Component({
   selector: 'app-cadastrar-livro',
@@ -42,6 +43,7 @@ export class CadastrarLivro implements OnDestroy {
   avisoIsbn = signal('');
 
   capaPreview = signal<string | null>(null);
+  erroCapa = signal('');
   private arquivoCapa: File | null = null;
   private objectUrl: string | null = null;
 
@@ -83,8 +85,14 @@ export class CadastrarLivro implements OnDestroy {
   }
 
   onArquivoSelecionado(event: Event) {
-    const file = (event.target as HTMLInputElement).files?.[0];
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
     if (!file) return;
+
+    const problema = validarCapa(file);
+    this.erroCapa.set(problema ?? '');
+    if (problema) return;
 
     this.revogarPreview();
     this.arquivoCapa = file;
@@ -103,7 +111,7 @@ export class CadastrarLivro implements OnDestroy {
 
     this.livroService.cadastrar({ ...this.form.getRawValue(), livroStatus: 'ATIVO' }).pipe(
       switchMap((criado): Observable<Livro> =>
-        this.arquivoCapa ? this.livroService.atualizarCapa(criado.livroId, this.arquivoCapa) : of(criado)
+        this.arquivoCapa ? this.livroService.enviarCapa(criado.livroId, this.arquivoCapa) : of(criado)
       )
     ).subscribe({
       next: () => this.router.navigateByUrl('/mostrar-livros'),

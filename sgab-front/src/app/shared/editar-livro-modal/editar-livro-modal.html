@@ -26,9 +26,19 @@
                         </div>
                     }
                     <label class="cursor-pointer rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50">
-                        Trocar capa
-                        <input type="file" accept="image/*" class="sr-only" (change)="onArquivoSelecionado($event)">
+                        {{ capaPreview() ? 'Trocar capa' : 'Enviar capa' }}
+                        <input type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" (change)="onArquivoSelecionado($event)">
                     </label>
+                    @if (capaPreview()) {
+                        <button type="button" (click)="removerCapa()" class="text-xs font-medium text-red-600 hover:underline">Remover capa</button>
+                    }
+                    <p class="text-center text-[11px] text-gray-400">JPG, PNG ou WEBP, até 5 MB</p>
+                    @if (erroCapa()) {
+                        <p role="alert" class="text-center text-xs text-red-600">{{ erroCapa() }}</p>
+                    }
+                    @if (removerCapaAoSalvar()) {
+                        <p class="text-center text-[11px] text-amber-700">A capa será removida ao salvar.</p>
+                    }
                 </div>
 
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -90,6 +100,33 @@
                     <div class="flex flex-col gap-1">
                         <label for="ed-ano" class="text-sm font-medium text-gray-700">Ano</label>
                         <input id="ed-ano" type="number" min="0" formControlName="ano" class="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20">
+                    </div>
+
+                    <div class="flex flex-col gap-1 sm:col-span-2">
+                        <label for="ed-exemplares" class="text-sm font-medium text-gray-700">Exemplares no acervo</label>
+                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                            <input
+                                id="ed-exemplares"
+                                type="number"
+                                step="1"
+                                [min]="livro().totalExemplares"
+                                formControlName="totalExemplares"
+                                class="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 sm:w-32"
+                                [class.border-red-500]="form.controls.totalExemplares.invalid"
+                            >
+                            <span class="text-xs text-gray-500">
+                                Hoje: {{ livro().totalExemplares }} ({{ livro().exemplaresDisponiveis }} disponíveis)
+                            </span>
+                        </div>
+                        @if (form.controls.totalExemplares.invalid) {
+                            <p class="text-xs text-red-600">
+                                Informe um número inteiro igual ou maior que {{ livro().totalExemplares }}. Não é possível remover exemplares por aqui.
+                            </p>
+                        } @else if (exemplaresNovos() > 0) {
+                            <p class="text-xs font-medium text-green-700">
+                                Ao salvar, {{ exemplaresNovos() === 1 ? 'será cadastrado 1 novo exemplar' : 'serão cadastrados ' + exemplaresNovos() + ' novos exemplares' }}.
+                            </p>
+                        }
                     </div>
 
                     <div class="flex flex-col gap-1 sm:col-span-2">

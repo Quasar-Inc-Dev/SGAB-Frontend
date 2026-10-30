@@ -10,6 +10,7 @@ import { Solicitacao } from '../../../../core/models/solicitacao';
 import { auth } from '../../../../core/auth/auth';
 import { SolicitacaoService } from '../../../../core/services/solicitacao';
 import { mensagemErro } from '../../../../core/utils/mensagem-erro';
+import { CapaPipe } from '../../../../shared/pipes/capa.pipe';
 
 interface CampoLivro {
   key: keyof Livro;
@@ -20,7 +21,7 @@ interface CampoLivro {
 
 @Component({
   selector: 'app-visualizar-livro',
-  imports: [Header, Footer, RouterLink, DatePipe],
+  imports: [Header, Footer, RouterLink, DatePipe, CapaPipe],
   templateUrl: './visualizar-livro.html',
   styleUrl: './visualizar-livro.scss',
 })

@@ -6,10 +6,11 @@ import { Header } from '../../../../shared/header/header';
 import { LivroService } from '../../../../core/services/livro';
 import { Livro } from '../../../../core/models/livro';
 import { Footer } from '../../../../shared/footer/footer';
+import { CapaPipe } from '../../../../shared/pipes/capa.pipe';
 
 @Component({
   selector: 'app-tela-home',
-  imports: [Header, Footer, FormsModule, RouterLink],
+  imports: [Header, Footer, FormsModule, RouterLink, CapaPipe],
   templateUrl: './tela-home.html',
   styleUrl: './tela-home.scss',
 })

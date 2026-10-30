@@ -1,6 +1,8 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { auth } from '../../core/auth/auth';
+
+type Menu = 'livros' | 'navUsuario' | 'usuario';
 
 @Component({
   selector: 'app-header',
@@ -13,31 +15,38 @@ export class Header {
   private router = inject(Router);
 
   menuMobileAberto = signal(false);
-  menuLivrosAberto = signal(false);
-  menuNavUsuarioAberto = signal(false);
-  menuUsuarioAberto = signal(false);
+
+  // Só um dropdown aberto por vez: abrir um fecha o outro
+  private menuAberto = signal<Menu | null>(null);
+  menuLivrosAberto = computed(() => this.menuAberto() === 'livros');
+  menuNavUsuarioAberto = computed(() => this.menuAberto() === 'navUsuario');
+  menuUsuarioAberto = computed(() => this.menuAberto() === 'usuario');
 
   toggleMenuMobile() {
     this.menuMobileAberto.update(v => !v);
+    this.menuAberto.set(null);
   }
 
   toggleMenuLivros() {
-    this.menuLivrosAberto.update(v => !v);
+    this.alternar('livros');
   }
 
   toggleMenuNavUsuario() {
-    this.menuNavUsuarioAberto.update(v => !v);
+    this.alternar('navUsuario');
   }
 
   toggleMenuUsuario() {
-    this.menuUsuarioAberto.update(v => !v);
+    this.alternar('usuario');
+    this.menuMobileAberto.set(false);
   }
 
   fecharMenus() {
     this.menuMobileAberto.set(false);
-    this.menuLivrosAberto.set(false);
-    this.menuNavUsuarioAberto.set(false);
-    this.menuUsuarioAberto.set(false);
+    this.menuAberto.set(null);
+  }
+
+  private alternar(menu: Menu) {
+    this.menuAberto.update(atual => (atual === menu ? null : menu));
   }
 
   sair() {

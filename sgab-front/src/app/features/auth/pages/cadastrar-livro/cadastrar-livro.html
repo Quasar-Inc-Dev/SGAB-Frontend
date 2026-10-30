@@ -17,8 +17,12 @@
             }
             <label class="w-full cursor-pointer rounded-lg border border-gray-300 px-3 py-1.5 text-center text-sm font-medium text-gray-700 hover:bg-gray-50">
                 Enviar capa
-                <input type="file" accept="image/*" class="sr-only" (change)="onArquivoSelecionado($event)">
+                <input type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" (change)="onArquivoSelecionado($event)">
             </label>
+            <p class="text-center text-[11px] text-gray-400">JPG, PNG ou WEBP, até 5 MB</p>
+            @if (erroCapa()) {
+                <p role="alert" class="text-center text-xs text-red-600">{{ erroCapa() }}</p>
+            }
         </div>
 
         <div class="flex flex-col gap-4">

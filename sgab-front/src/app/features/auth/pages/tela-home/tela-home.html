@@ -49,7 +49,7 @@
                     <a [routerLink]="['/livro', livro.livroId]" class="group flex flex-col overflow-hidden rounded-xl bg-white shadow-md transition-all duration-200 hover:-translate-y-1 hover:shadow-xl">
                         @if (livro.imgUrl) {
                             <img
-                                [src]="livro.imgUrl"
+                                [src]="livro.imgUrl | capa"
                                 [alt]="'Capa de ' + livro.titulo"
                                 class="aspect-[3/4] w-full object-cover"
                             >

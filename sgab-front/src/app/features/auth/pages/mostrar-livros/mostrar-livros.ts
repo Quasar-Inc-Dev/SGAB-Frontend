@@ -7,10 +7,11 @@ import { LivroService } from '../../../../core/services/livro';
 import { Livro } from '../../../../core/models/livro';
 import { EditarLivroModal } from '../../../../shared/editar-livro-modal/editar-livro-modal';
 import { mensagemErro } from '../../../../core/utils/mensagem-erro';
+import { CapaPipe } from '../../../../shared/pipes/capa.pipe';
 
 @Component({
   selector: 'app-mostrar-livros',
-  imports: [Header, Footer, EditarLivroModal],
+  imports: [Header, Footer, EditarLivroModal, CapaPipe],
   templateUrl: './mostrar-livros.html',
   styleUrl: './mostrar-livros.scss',
 })
