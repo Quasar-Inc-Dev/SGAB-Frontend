@@ -10,11 +10,13 @@ import { CadastrarUsuario } from './features/auth/pages/cadastrar-usuario/cadast
 import { Solicitacoes } from './features/auth/pages/solicitacoes/solicitacoes';
 import { MinhasSolicitacoes } from './features/auth/pages/minhas-solicitacoes/minhas-solicitacoes';
 import { ListarUsuarios } from './features/auth/pages/listar-usuarios/listar-usuarios';
+import { RedefinirSenha } from './features/auth/pages/redefinir-senha/redefinir-senha';
 import { authGuard, funcionarioGuard, leitorGuard } from './core/guards/auth-guards';
 
 export const routes: Routes = [
     {path: '',component: LoginPage},
     {path: 'cadastro',component: CadastroUsuario},
+    {path: 'redefinir-senha', component: RedefinirSenha},
     {path: 'home',component: TelaHome, canActivate: [authGuard]},
     {path: 'mostrar-livros', component: MostrarLivros, canActivate: [authGuard]},
     {path: 'cadastrar-livro', component: CadastrarLivro, canActivate: [authGuard]},

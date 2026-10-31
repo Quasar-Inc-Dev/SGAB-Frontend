@@ -29,6 +29,11 @@ export class auth {
         return this.http.post<MensagemResponse>(`${this.apiBase}/esqueci-senha`, { email });
     }
 
+    // Troca a senha usando o token recebido no link do e-mail
+    redefinirSenha(token: string, novaSenha: string) {
+        return this.http.post<MensagemResponse>(`${this.apiBase}/redefinir-senha`, { token, novaSenha });
+    }
+
     getToken(): string | null {
         if (!this.isBrowser) return null;
         return localStorage.getItem(this.tokenKey);
