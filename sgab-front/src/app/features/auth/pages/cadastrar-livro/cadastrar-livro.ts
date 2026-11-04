@@ -50,6 +50,10 @@ export class CadastrarLivro implements OnDestroy {
   salvando = signal(false);
   erroSalvar = signal('');
 
+  // Signals adicionados para o controle das Tags (Pílulas)
+  tagsList = signal<string[]>([]);
+  tagEditando = signal<number | null>(null);
+
   cancelar() {
     this.router.navigateByUrl('/mostrar-livros');
   }
@@ -65,6 +69,15 @@ export class CadastrarLivro implements OnDestroy {
       next: (dados) => {
         this.buscandoIsbn.set(false);
         this.avisoIsbn.set('Dados encontrados. Confira e complete o que faltar.');
+
+        // Processa as tags vindas da busca e as transforma em pílulas normalizadas
+        if (dados.tags) {
+          const tagsEncontradas = dados.tags.split(',')
+            .map(t => this.normalizarTag(t))
+            .filter(t => t);
+          this.tagsList.set(tagsEncontradas);
+        }
+
         this.form.patchValue({
           titulo: dados.titulo ?? this.form.controls.titulo.value,
           subtitulo: dados.subtitulo ?? this.form.controls.subtitulo.value,
@@ -75,6 +88,7 @@ export class CadastrarLivro implements OnDestroy {
           paginas: dados.paginas ?? this.form.controls.paginas.value,
           ano: dados.ano ?? this.form.controls.ano.value,
           genero: dados.genero ?? this.form.controls.genero.value,
+          tags: this.tagsList().join(', ') // Sincroniza o array de tags com o formulário
         });
       },
       error: () => {
@@ -83,6 +97,73 @@ export class CadastrarLivro implements OnDestroy {
       },
     });
   }
+
+  // --- Lógica de Controle das Tags (Pílulas) ---
+
+  onTagKeyDown(event: KeyboardEvent) {
+    if (event.key === 'Enter' || event.key === ',') {
+      event.preventDefault(); // Evita o submit acidental do formulário ao dar Enter
+      const input = event.target as HTMLInputElement;
+      this.processarNovaTag(input.value);
+      input.value = '';
+    }
+  }
+
+  adicionarTagPeloInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.processarNovaTag(input.value);
+    input.value = '';
+  }
+
+  private processarNovaTag(valor: string) {
+    const tagNormalizada = this.normalizarTag(valor);
+    if (tagNormalizada && !this.tagsList().includes(tagNormalizada)) {
+      this.tagsList.update(tags => [...tags, tagNormalizada]);
+      this.sincronizarForm();
+    }
+  }
+
+  removerTag(index: number) {
+    this.tagsList.update(tags => tags.filter((_, i) => i !== index));
+    this.sincronizarForm();
+  }
+
+  iniciarEdicao(index: number) {
+    this.tagEditando.set(index);
+  }
+
+  concluirEdicao(event: Event, index: number) {
+    const input = event.target as HTMLInputElement;
+    const novoValor = this.normalizarTag(input.value);
+
+    this.tagsList.update(tags => {
+      if (novoValor && !tags.includes(novoValor)) {
+        tags[index] = novoValor;
+      } else {
+        // Remove a tag se o texto for apagado ou se a edição gerar uma tag duplicada
+        tags.splice(index, 1);
+      }
+      return [...tags];
+    });
+
+    this.tagEditando.set(null);
+    this.sincronizarForm();
+  }
+
+  private normalizarTag(tag: string): string {
+    if (!tag) return '';
+    // Remove espaços duplos e espaços nas pontas
+    const textoLimpo = tag.trim().replace(/\s+/g, ' ');
+    if (!textoLimpo) return '';
+    // Primeira letra maiúscula e o resto minúsculo
+    return textoLimpo.charAt(0).toUpperCase() + textoLimpo.slice(1).toLowerCase();
+  }
+
+  private sincronizarForm() {
+    this.form.controls.tags.setValue(this.tagsList().join(', '));
+  }
+
+  // --- Fim da Lógica de Tags ---
 
   onArquivoSelecionado(event: Event) {
     const input = event.target as HTMLInputElement;

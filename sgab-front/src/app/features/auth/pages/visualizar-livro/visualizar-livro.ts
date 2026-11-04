@@ -49,6 +49,20 @@ export class VisualizarLivro implements OnInit {
   temDisponivel = computed(() => (this.livro()?.exemplaresDisponiveis ?? 0) > 0);
   pendenteEmprestimo = computed(() => this.minhasPendentes().find(s => s.tipo === 'EMPRESTIMO') ?? null);
 
+  // Sinal computado que converte a string de tags em um array de pílulas normalizadas
+  tagsNormalizadas = computed(() => {
+    const stringDeTags = this.livro()?.tags;
+    if (!stringDeTags) return [];
+
+    return stringDeTags.split(',')
+      .map(tag => {
+        const textoLimpo = tag.trim().replace(/\s+/g, ' ');
+        if (!textoLimpo) return '';
+        return textoLimpo.charAt(0).toUpperCase() + textoLimpo.slice(1).toLowerCase();
+      })
+      .filter(tag => tag !== '');
+  });
+
   readonly statusForaDeCirculacao: ExemplarStatus[] = ['MANUTENCAO', 'EXTRAVIADO'];
 
   readonly etiquetasExemplar: Record<ExemplarStatus, { label: string; classes: string }> = {
