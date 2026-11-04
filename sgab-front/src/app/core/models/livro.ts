@@ -37,6 +37,7 @@ export interface LivroIsbnConsulta {
     paginas: number,
     ano: number,
     genero: string
+    tags?: string;
 }
 
 export type ExemplarStatus = 'DISPONIVEL' | 'EMPRESTADO' | 'RESERVADO' | 'MANUTENCAO' | 'EXTRAVIADO';
