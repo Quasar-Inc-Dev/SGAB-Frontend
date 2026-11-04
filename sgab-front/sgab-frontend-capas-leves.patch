@@ -1,0 +1,77 @@
+Subject: [PATCH] Capas em tamanho menor nas listas e carregamento sob demanda
+
+---
+ .../pages/mostrar-livros/mostrar-livros.html  |  2 +-
+ .../auth/pages/tela-home/tela-home.html       |  4 +++-
+ sgab-front/src/app/shared/pipes/capa.pipe.ts  | 20 +++++++++++++++----
+ 3 files changed, 20 insertions(+), 6 deletions(-)
+
+diff --git a/sgab-front/src/app/features/auth/pages/mostrar-livros/mostrar-livros.html b/sgab-front/src/app/features/auth/pages/mostrar-livros/mostrar-livros.html
+index 235d0fc..9807dc3 100644
+--- a/sgab-front/src/app/features/auth/pages/mostrar-livros/mostrar-livros.html
++++ b/sgab-front/src/app/features/auth/pages/mostrar-livros/mostrar-livros.html
+@@ -46,7 +46,7 @@
+                         <tr class="transition-colors hover:bg-gray-50">
+                             <td class="px-3 py-2">
+                                 @if (livro.imgUrl) {
+-                                    <img [src]="livro.imgUrl | capa"[alt]="'Capa de ' + livro.titulo" class="h-14 w-10 rounded bg-gray-100 object-cover">
++                                    <img [src]="livro.imgUrl | capa:'S'" loading="lazy" decoding="async" [alt]="'Capa de ' + livro.titulo" class="h-14 w-10 rounded bg-gray-100 object-cover">
+                                 } @else {
+                                     <div class="flex h-14 w-10 items-center justify-center rounded bg-brand-dark/10 font-bold text-brand-dark">
+                                         {{ livro.titulo.charAt(0) }}
+diff --git a/sgab-front/src/app/features/auth/pages/tela-home/tela-home.html b/sgab-front/src/app/features/auth/pages/tela-home/tela-home.html
+index a404fe3..c0a36da 100644
+--- a/sgab-front/src/app/features/auth/pages/tela-home/tela-home.html
++++ b/sgab-front/src/app/features/auth/pages/tela-home/tela-home.html
+@@ -49,7 +49,9 @@
+                     <a [routerLink]="['/livro', livro.livroId]" class="group flex flex-col overflow-hidden rounded-xl bg-white shadow-md transition-all duration-200 hover:-translate-y-1 hover:shadow-xl">
+                         @if (livro.imgUrl) {
+                             <img
+-                                [src]="livro.imgUrl | capa"
++                                [src]="livro.imgUrl | capa:'M'"
++                                loading="lazy"
++                                decoding="async"
+                                 [alt]="'Capa de ' + livro.titulo"
+                                 class="aspect-[3/4] w-full object-cover"
+                             >
+diff --git a/sgab-front/src/app/shared/pipes/capa.pipe.ts b/sgab-front/src/app/shared/pipes/capa.pipe.ts
+index bdf1998..cd4783a 100644
+--- a/sgab-front/src/app/shared/pipes/capa.pipe.ts
++++ b/sgab-front/src/app/shared/pipes/capa.pipe.ts
+@@ -2,17 +2,29 @@ import { Pipe, PipeTransform } from '@angular/core';
+ 
+ const API_URL = 'http://localhost:8080';
+ 
++// S = miniatura (listas), M = média (grade do acervo), L = grande (detalhes do livro)
++export type TamanhoCapa = 'S' | 'M' | 'L';
++
+ // Capas enviadas ficam no back como caminho relativo (/upload/capas/...);
+ // capas do Google Books, previews locais (blob:) e data URLs já são absolutas.
+-export function urlCapa(imgUrl: string | null | undefined): string | null {
++export function urlCapa(imgUrl: string | null | undefined, tamanho: TamanhoCapa = 'L'): string | null {
+   if (!imgUrl) return null;
+-  if (/^(https?:|blob:|data:)/.test(imgUrl)) return imgUrl;
++  if (/^(https?:|blob:|data:)/.test(imgUrl)) return ajustarTamanho(imgUrl, tamanho);
+   return API_URL + (imgUrl.startsWith('/') ? '' : '/') + imgUrl;
+ }
+ 
++// Open Library oferece a mesma capa em 3 tamanhos (-S, -M, -L); a grande pode passar de 100 KB.
++// Nas listas, pedir a versão menor reduz bastante o volume baixado.
++function ajustarTamanho(url: string, tamanho: TamanhoCapa): string {
++  if (url.includes('covers.openlibrary.org')) {
++    return url.replace(/-[SML]\.jpg(\?.*)?$/, `-${tamanho}.jpg$1`);
++  }
++  return url;
++}
++
+ @Pipe({ name: 'capa' })
+ export class CapaPipe implements PipeTransform {
+-  transform(imgUrl: string | null | undefined): string | null {
+-    return urlCapa(imgUrl);
++  transform(imgUrl: string | null | undefined, tamanho: TamanhoCapa = 'L'): string | null {
++    return urlCapa(imgUrl, tamanho);
+   }
+ }
+-- 
+2.43.0
+

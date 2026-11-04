@@ -59,7 +59,9 @@
             [class.text-gray-500]="aba() !== 'emprestimos'"
         >
             Empréstimos
-            <span class="ml-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">{{ emprestimos().length }}</span>
+            @if (!carregandoEmprestimos()) {
+                <span class="ml-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">{{ emprestimos().length }}</span>
+            }
         </button>
         <button
             type="button"
@@ -73,7 +75,9 @@
             [class.text-gray-500]="aba() !== 'reservas'"
         >
             Reservas
-            <span class="ml-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">{{ reservas().length }}</span>
+            @if (!carregandoReservas()) {
+                <span class="ml-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">{{ reservas().length }}</span>
+            }
         </button>
     </div>
 

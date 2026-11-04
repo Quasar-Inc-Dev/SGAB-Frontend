@@ -49,6 +49,10 @@ export class TelaHome implements OnInit {
     });
   });
 
+  // A home mostra só os primeiros livros; a busca e os filtros continuam valendo para o acervo todo
+  readonly limiteExibicao = 15;
+  livrosExibidos = computed(() => this.livrosFiltrados().slice(0, this.limiteExibicao));
+
   toggleFiltro() {
     this.filtroAberto.update(v => !v);
   }

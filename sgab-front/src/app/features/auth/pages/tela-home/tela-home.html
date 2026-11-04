@@ -45,11 +45,13 @@
             <p class="py-12 text-center text-gray-500">Nenhum livro encontrado com esses filtros.</p>
         } @else {
             <div class="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
-                @for (livro of livrosFiltrados(); track livro.livroId) {
+                @for (livro of livrosExibidos(); track livro.livroId) {
                     <a [routerLink]="['/livro', livro.livroId]" class="group flex flex-col overflow-hidden rounded-xl bg-white shadow-md transition-all duration-200 hover:-translate-y-1 hover:shadow-xl">
                         @if (livro.imgUrl) {
                             <img
-                                [src]="livro.imgUrl | capa"
+                                [src]="livro.imgUrl | capa:'M'"
+                                loading="lazy"
+                                decoding="async"
                                 [alt]="'Capa de ' + livro.titulo"
                                 class="aspect-[3/4] w-full object-cover"
                             >
@@ -65,6 +67,12 @@
                     </a>
                 }
             </div>
+
+            @if (livrosFiltrados().length > limiteExibicao) {
+                <p class="mt-6 text-center text-sm text-gray-500">
+                    Mostrando {{ limiteExibicao }} de {{ livrosFiltrados().length }} livros. Use a busca ou os filtros para encontrar os demais.
+                </p>
+            }
         }
     </div>
 

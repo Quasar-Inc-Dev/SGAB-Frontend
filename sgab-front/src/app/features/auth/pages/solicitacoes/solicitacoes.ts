@@ -111,15 +111,18 @@ export class Solicitacoes implements OnInit {
   ngOnInit(): void {
     if (!this.isBrowser) return;
 
+    // Pendentes e aguardando retirada carregam já: são o trabalho do dia e os contadores aparecem nas abas.
+    // Empréstimos e reservas (histórico, listas maiores) só carregam quando a aba é aberta.
     this.carregarPendentes();
     this.carregarAguardandoRetirada();
-    this.carregarEmprestimos();
-    this.carregarReservas();
   }
 
   trocarAba(aba: Aba) {
     this.aba.set(aba);
     this.busca.set('');
+
+    if (aba === 'emprestimos' && !this.emprestimosCarregados) this.carregarEmprestimos();
+    if (aba === 'reservas' && !this.reservasCarregadas) this.carregarReservas();
   }
 
   onBuscaChange(event: Event) {
@@ -144,7 +147,7 @@ export class Solicitacoes implements OnInit {
       next: () => {
         this.aguardandoRetirada.update(lista => lista.filter(a => a.solicitacaoId !== s.solicitacaoId));
         this.processandoId.set(null);
-        this.carregarEmprestimos();
+        if (this.emprestimosCarregados) this.carregarEmprestimos();
       },
       error: (err: HttpErrorResponse) => {
         this.erroAnalise(s, err, 'Não foi possível confirmar a retirada.');
@@ -231,7 +234,13 @@ export class Solicitacoes implements OnInit {
     });
   }
 
+  private emprestimosCarregados = false;
+  private reservasCarregadas = false;
+
   private carregarEmprestimos(): void {
+    this.emprestimosCarregados = true;
+    this.carregandoEmprestimos.set(true);
+    this.erroEmprestimos.set(false);
     this.emprestimoService.listar().subscribe({
       next: (lista) => {
         this.emprestimos.set([...lista].sort((a, b) => b.emprestimoId - a.emprestimoId));
@@ -245,6 +254,9 @@ export class Solicitacoes implements OnInit {
   }
 
   private carregarReservas(): void {
+    this.reservasCarregadas = true;
+    this.carregandoReservas.set(true);
+    this.erroReservas.set(false);
     this.reservaService.listar().subscribe({
       next: (lista) => {
         this.reservas.set([...lista].sort((a, b) => b.reservaId - a.reservaId));
@@ -262,8 +274,9 @@ export class Solicitacoes implements OnInit {
     this.pendentes.update(lista => lista.filter(p => p.solicitacaoId !== s.solicitacaoId));
     this.processandoId.set(null);
     this.carregarAguardandoRetirada();
-    this.carregarEmprestimos();
-    this.carregarReservas();
+    // As abas de histórico que ainda não foram abertas vão carregar atualizadas quando forem abertas
+    if (this.emprestimosCarregados) this.carregarEmprestimos();
+    if (this.reservasCarregadas) this.carregarReservas();
   }
 
   // Em caso de erro (ex.: 409), a solicitação continua pendente e o erro aparece na linha
