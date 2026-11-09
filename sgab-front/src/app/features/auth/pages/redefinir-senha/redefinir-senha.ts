@@ -35,6 +35,7 @@ export class RedefinirSenha {
   enviando = signal(false);
   sucesso = signal(false);
   erro = signal('');
+  linkExpirado = signal(false);
 
   toggleSenhaVisivel(): void {
     this.senhaVisivel.update(v => !v);
@@ -56,6 +57,8 @@ export class RedefinirSenha {
       },
       error: (err: HttpErrorResponse) => {
         this.enviando.set(false);
+        // 409: link inválido, expirado ou já usado. 400: senha fora das regras
+        this.linkExpirado.set(err.status === 409);
         this.erro.set(mensagemErro(err, 'Não foi possível redefinir a senha. O link pode ter expirado.'));
       }
     });

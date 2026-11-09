@@ -9,6 +9,7 @@ import { authGuard, funcionarioGuard, leitorGuard } from './core/guards/auth-gua
 export const routes: Routes = [
     {path: '', component: LoginPage},
     {path: 'cadastro', loadComponent: () => import('./features/auth/pages/cadastro-usuario/cadastro-usuario').then(m => m.CadastroUsuario)},
+    {path: 'esqueci-senha', loadComponent: () => import('./features/auth/pages/esqueci-senha/esqueci-senha').then(m => m.EsqueciSenha)},
     {path: 'redefinir-senha', loadComponent: () => import('./features/auth/pages/redefinir-senha/redefinir-senha').then(m => m.RedefinirSenha)},
     {path: 'home', canActivate: [authGuard], loadComponent: () => import('./features/auth/pages/tela-home/tela-home').then(m => m.TelaHome)},
     {path: 'mostrar-livros', canActivate: [authGuard], loadComponent: () => import('./features/auth/pages/mostrar-livros/mostrar-livros').then(m => m.MostrarLivros)},

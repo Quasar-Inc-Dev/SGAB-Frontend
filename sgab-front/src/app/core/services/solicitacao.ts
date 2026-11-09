@@ -3,6 +3,8 @@ import { inject, Injectable } from "@angular/core";
 import { MonoTypeOperatorFunction, tap } from "rxjs";
 import { Solicitacao, SolicitacaoFiltro } from "../models/solicitacao";
 import { LivroService } from "./livro";
+import { Pagina } from "../models/pagina";
+import { buscarTodasPaginas, TAMANHO_MAXIMO_PAGINA } from "../utils/paginacao";
 
 
 
@@ -27,8 +29,13 @@ export class SolicitacaoService {
         return this.http.post<Solicitacao>(`${this.apiUrl}api/solicitacoes/reserva`, null, { params: { exemplarId } });
     }
 
+    // Ordem fixa no back (mais recentes primeiro): aqui só page e size valem
+    minhasPagina(page = 0, size = 20) {
+        return this.http.get<Pagina<Solicitacao>>(`${this.apiUrl}api/solicitacoes/minhas`, { params: { page, size } });
+    }
+
     minhas() {
-        return this.http.get<Solicitacao[]>(`${this.apiUrl}api/solicitacoes/minhas`);
+        return buscarTodasPaginas(page => this.minhasPagina(page, TAMANHO_MAXIMO_PAGINA));
     }
 
     cancelar(id: number) {
@@ -37,8 +44,13 @@ export class SolicitacaoService {
 
     // Funcionário / administrador
 
+    // Ordem fixa no back (mais antigas primeiro): aqui só page, size e os filtros valem
+    listarPagina(filtro: SolicitacaoFiltro = {}, page = 0, size = 20) {
+        return this.http.get<Pagina<Solicitacao>>(`${this.apiUrl}api/solicitacoes`, { params: { ...filtro, page, size } });
+    }
+
     listar(filtro: SolicitacaoFiltro = {}) {
-        return this.http.get<Solicitacao[]>(`${this.apiUrl}api/solicitacoes`, { params: { ...filtro } });
+        return buscarTodasPaginas(page => this.listarPagina(filtro, page, TAMANHO_MAXIMO_PAGINA));
     }
 
     aprovar(id: number) {

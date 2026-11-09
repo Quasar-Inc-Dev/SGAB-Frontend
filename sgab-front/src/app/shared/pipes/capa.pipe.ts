@@ -1,16 +1,14 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
-const API_URL = 'http://localhost:8080';
-
 // S = miniatura (listas), M = média (grade do acervo), L = grande (detalhes do livro)
 export type TamanhoCapa = 'S' | 'M' | 'L';
 
-// Capas enviadas ficam no back como caminho relativo (/upload/capas/...);
-// capas do Google Books, previews locais (blob:) e data URLs já são absolutas.
+// O back já devolve a URL completa: Supabase Storage para as capas enviadas,
+// ou a URL externa (Google Books / Open Library). Previews locais são blob:.
+// Caminhos relativos antigos (/upload/...) não existem mais e são ignorados.
 export function urlCapa(imgUrl: string | null | undefined, tamanho: TamanhoCapa = 'L'): string | null {
-  if (!imgUrl) return null;
-  if (/^(https?:|blob:|data:)/.test(imgUrl)) return ajustarTamanho(imgUrl, tamanho);
-  return API_URL + (imgUrl.startsWith('/') ? '' : '/') + imgUrl;
+  if (!imgUrl || !/^(https?:|blob:|data:)/.test(imgUrl)) return null;
+  return ajustarTamanho(imgUrl, tamanho);
 }
 
 // Open Library oferece a mesma capa em 3 tamanhos (-S, -M, -L); a grande pode passar de 100 KB.

@@ -2,6 +2,8 @@ import { HttpClient } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
 import { catchError, MonoTypeOperatorFunction, Observable, shareReplay, tap, throwError } from "rxjs";
 import { Exemplar, Livro, LivroIsbnConsulta, LivroRequest } from "../models/livro";
+import { Pagina, ParametrosPagina } from "../models/pagina";
+import { buscarTodasPaginas, TAMANHO_MAXIMO_PAGINA } from "../utils/paginacao";
 
 
 
@@ -17,10 +19,16 @@ export class LivroService {
     private cacheLivros$: Observable<Livro[]> | null = null;
     private cacheExpiraEm = 0;
 
+    // Uma página (título A→Z). sort aceita, por exemplo, "titulo,asc" ou "ano,desc"
+    listarPagina(params: ParametrosPagina = {}) {
+        return this.http.get<Pagina<Livro>>(this.apiUrl + "api/livros", { params: { ...params } });
+    }
+
+    // Todos os livros, juntando as páginas (home e acervo filtram no navegador)
     getAll() {
         if (!this.cacheLivros$ || Date.now() > this.cacheExpiraEm) {
             this.cacheExpiraEm = Date.now() + this.validadeCacheMs;
-            this.cacheLivros$ = this.http.get<Livro[]>(this.apiUrl + "api/livros").pipe(
+            this.cacheLivros$ = buscarTodasPaginas(page => this.listarPagina({ page, size: TAMANHO_MAXIMO_PAGINA })).pipe(
                 // Se a requisição falhar, não guarda o erro: a próxima chamada tenta de novo
                 catchError(err => {
                     this.limparCache();

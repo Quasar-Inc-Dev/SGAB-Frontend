@@ -131,7 +131,7 @@ export class EditarLivroModal implements OnInit, OnDestroy {
     this.livroService.atualizar(id, {
       ...camposDesabilitados,
       ...campos,
-      imgUrl: livro.imgUrl,
+      // imgUrl não vai: sem ele o back mantém a capa atual (troca/remoção usam as rotas de capa)
       livroStatus: ativo ? 'ATIVO' : 'INATIVO',
     }).pipe(
       // Cadastra só a diferença: de 1 para 3, adiciona 2 exemplares

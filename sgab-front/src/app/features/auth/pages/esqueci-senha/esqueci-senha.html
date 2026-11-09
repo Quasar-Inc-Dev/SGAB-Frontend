@@ -1,0 +1,56 @@
+<section class="px-4">
+    <div class="w-full max-w-sm rounded-2xl bg-white p-8 shadow-2xl">
+        <div class="mb-6 text-center">
+            <h1 class="text-3xl font-bold tracking-wide text-brand-dark">SGAB</h1>
+            <p class="mt-1 text-sm text-gray-500">Esqueci a senha</p>
+        </div>
+
+        @if (enviado()) {
+            <p role="status" class="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+                Se o e-mail estiver cadastrado, você vai receber um link para criar uma nova senha.
+                O link vale por 30 minutos e só pode ser usado uma vez. Confira também a caixa de spam.
+            </p>
+            <a routerLink="/" class="mt-4 block rounded-lg bg-brand py-2.5 text-center font-semibold text-white transition-colors hover:bg-brand-dark">
+                Voltar ao login
+            </a>
+        } @else {
+            <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4" novalidate>
+                <p class="text-sm text-gray-600">Informe o e-mail da sua conta e enviaremos um link para redefinir a senha.</p>
+
+                <div class="flex flex-col gap-1">
+                    <label for="email" class="text-sm font-medium text-gray-700">E-mail</label>
+                    <input
+                        id="email"
+                        type="email"
+                        formControlName="email"
+                        autocomplete="email"
+                        placeholder="seu@email.com"
+                        class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+                        [class.border-red-500]="form.controls.email.touched && form.controls.email.invalid"
+                    >
+                    @if (form.controls.email.touched && form.controls.email.invalid) {
+                        <p class="text-xs text-red-600">Informe um e-mail válido.</p>
+                    }
+                </div>
+
+                @if (erro()) {
+                    <p role="alert" class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{{ erro() }}</p>
+                }
+
+                <button
+                    type="submit"
+                    [disabled]="enviando()"
+                    class="rounded-lg bg-brand py-2.5 font-semibold text-white transition-colors hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                    {{ enviando() ? 'Enviando...' : 'Enviar link' }}
+                </button>
+
+                <p class="text-center text-sm text-gray-600">
+                    <a routerLink="/" class="font-semibold text-brand hover:underline">Voltar ao login</a>
+                </p>
+            </form>
+        }
+    </div>
+
+    <img src="logo_fatec_br.png" alt="Logo Fatec" class="absolute bottom-6 left-1/2 w-24 -translate-x-1/2 opacity-90">
+</section>
