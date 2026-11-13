@@ -64,6 +64,45 @@
                 }
             </div>
             }
+
+            @if (exemplares().length) {
+            <div class="mt-5 w-full border-t border-gray-100 pt-4">
+                <h2 class="mb-2 text-sm font-semibold text-gray-900">Exemplares</h2>
+                <ul class="flex flex-col gap-2">
+                    @for (ex of exemplares(); track ex.exemplarId) {
+                    <li class="flex flex-col gap-1.5 rounded-lg border border-gray-200 p-2.5">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="text-sm font-medium text-gray-900">{{ ex.tombo }}</span>
+                            <span class="whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-medium"
+                                [class]="etiquetasExemplar[ex.status].classes">
+                                {{ etiquetasExemplar[ex.status].label }}
+                            </span>
+                        </div>
+                        @if (ex.localizacao) {
+                        <span class="text-xs text-gray-500">{{ ex.localizacao }}</span>
+                        }
+
+                        @if (isLeitor && ativo() && !statusForaDeCirculacao.includes(ex.status)) {
+                        @if (pendenteReserva(ex.exemplarId); as pendente) {
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="text-xs text-amber-700">Reserva aguardando aprovação</span>
+                            <button type="button" (click)="cancelarSolicitacao(pendente)" [disabled]="enviando()"
+                                class="rounded-lg px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50">
+                                Cancelar
+                            </button>
+                        </div>
+                        } @else {
+                        <button type="button" (click)="solicitarReserva(ex)" [disabled]="enviando()"
+                            class="w-full rounded-lg border border-brand px-3 py-1.5 text-xs font-semibold text-brand hover:bg-brand/10 disabled:opacity-50">
+                            Solicitar reserva
+                        </button>
+                        }
+                        }
+                    </li>
+                    }
+                </ul>
+            </div>
+            }
         </div>
 
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -100,44 +139,6 @@
         </div>
     </div>
 
-    @if (exemplares().length) {
-    <div class="mt-6 rounded-xl bg-white p-6 shadow-md">
-        <h2 class="mb-3 text-lg font-semibold text-gray-900">Exemplares</h2>
-        <ul class="divide-y divide-gray-100">
-            @for (ex of exemplares(); track ex.exemplarId) {
-            <li class="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
-                <div class="flex items-center gap-3">
-                    <span class="font-medium text-gray-900">{{ ex.tombo }}</span>
-                    <span class="whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-medium"
-                        [class]="etiquetasExemplar[ex.status].classes">
-                        {{ etiquetasExemplar[ex.status].label }}
-                    </span>
-                    @if (ex.localizacao) {
-                    <span class="text-xs text-gray-500">{{ ex.localizacao }}</span>
-                    }
-                </div>
-
-                @if (isLeitor && ativo() && !statusForaDeCirculacao.includes(ex.status)) {
-                @if (pendenteReserva(ex.exemplarId); as pendente) {
-                <div class="flex items-center gap-2">
-                    <span class="text-xs text-amber-700">Reserva aguardando aprovação</span>
-                    <button type="button" (click)="cancelarSolicitacao(pendente)" [disabled]="enviando()"
-                        class="rounded-lg px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50">
-                        Cancelar
-                    </button>
-                </div>
-                } @else {
-                <button type="button" (click)="solicitarReserva(ex)" [disabled]="enviando()"
-                    class="rounded-lg border border-brand px-3 py-1.5 text-xs font-semibold text-brand hover:bg-brand/10 disabled:opacity-50">
-                    Solicitar reserva
-                </button>
-                }
-                }
-            </li>
-            }
-        </ul>
-    </div>
-    }
     }
 </section>
 

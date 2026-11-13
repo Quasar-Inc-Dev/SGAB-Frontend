@@ -80,7 +80,7 @@
                                 </div>
                             </td>
                             <td class="hidden px-3 py-2 text-gray-600 md:table-cell">{{ leitor.email }}</td>
-                            <td class="whitespace-nowrap px-3 py-2 text-gray-600">{{ formatarCpf(leitor.cpf) }}</td>
+                            <td class="whitespace-nowrap px-3 py-2 text-gray-600">{{ leitor.cpf | cpf }}</td>
                             <td class="px-3 py-2 text-gray-600">{{ rotulo(leitor.tipoLeitor) }}</td>
                             <td class="hidden px-3 py-2 text-gray-600 lg:table-cell">{{ rotulo(leitor.genero) }}</td>
                             <td class="hidden whitespace-nowrap px-3 py-2 text-gray-600 lg:table-cell">{{ leitor.dataNascimento | date:'dd/MM/yyyy' }}</td>
@@ -148,7 +148,7 @@
         >
             <header class="border-b border-gray-200 px-5 py-4">
                 <h2 id="titulo-editar-usuario" class="text-lg font-semibold text-gray-900">Editar usuário</h2>
-                <p class="text-xs text-gray-500">{{ leitor.email }} · CPF {{ formatarCpf(leitor.cpf) }}</p>
+                <p class="text-xs text-gray-500">{{ leitor.email }} · CPF {{ leitor.cpf | cpf }}</p>
             </header>
 
             <div class="grid grid-cols-1 gap-4 px-5 py-4 sm:grid-cols-2">

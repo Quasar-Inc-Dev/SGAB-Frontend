@@ -8,12 +8,13 @@ import { Footer } from '../../../../shared/footer/footer';
 import { LeitorService } from '../../../../core/services/leitor';
 import { Leitor } from '../../../../core/models/usuario';
 import { mensagemErro } from '../../../../core/utils/mensagem-erro';
+import { CpfPipe } from '../../../../shared/pipes/cpf.pipe';
 
 type FiltroStatus = '' | 'ATIVO' | 'INATIVO';
 
 @Component({
   selector: 'app-listar-usuarios',
-  imports: [Header, Footer, DatePipe, ReactiveFormsModule, RouterLink],
+  imports: [Header, Footer, DatePipe, ReactiveFormsModule, RouterLink, CpfPipe],
   templateUrl: './listar-usuarios.html',
   styleUrl: './listar-usuarios.scss',
   host: { '(document:keydown.escape)': 'fecharModais()' },
@@ -131,11 +132,6 @@ export class ListarUsuarios implements OnInit {
   irParaPagina(pagina: number) {
     if (pagina < 1 || pagina > this.totalPaginas()) return;
     this.paginaAtual.set(pagina);
-  }
-
-  formatarCpf(cpf: string): string {
-    const d = (cpf ?? '').replace(/\D/g, '');
-    return d.length === 11 ? `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}` : cpf;
   }
 
   rotulo(valor: string): string {

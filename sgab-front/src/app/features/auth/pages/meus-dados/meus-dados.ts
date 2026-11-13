@@ -8,6 +8,7 @@ import { UsuarioResponse } from '../../../../core/models/usuario';
 import { HttpErrorResponse } from '@angular/common/http';
 import { auth } from '../../../../core/auth/auth';
 import { mensagemErro } from '../../../../core/utils/mensagem-erro';
+import { cpfCensurado } from '../../../../shared/pipes/cpf.pipe';
 
 interface CampoUsuario {
   key: keyof UsuarioResponse;
@@ -89,6 +90,7 @@ export class MeusDados implements OnInit {
     const v = this.usuario()?.[key];
     if (v === null || v === undefined || v === '') return '-';
     if (key === 'tipoUsuario') return TIPOS_USUARIO[String(v)] ?? String(v);
+    if (key === 'cpf') return cpfCensurado(String(v));
     if (typeof v === 'boolean') return v ? 'Ativo' : 'Inativo';
     return String(v);
   }
