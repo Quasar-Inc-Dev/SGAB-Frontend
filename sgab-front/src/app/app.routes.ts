@@ -19,5 +19,6 @@ export const routes: Routes = [
     {path: 'usuarios', canActivate: [authGuard, funcionarioGuard], loadComponent: () => import('./features/auth/pages/listar-usuarios/listar-usuarios').then(m => m.ListarUsuarios)},
     {path: 'usuarios/cadastro', canActivate: [authGuard], loadComponent: () => import('./features/auth/pages/cadastrar-usuario/cadastrar-usuario').then(m => m.CadastrarUsuario)},
     {path: 'solicitacoes', canActivate: [authGuard, funcionarioGuard], loadComponent: () => import('./features/auth/pages/solicitacoes/solicitacoes').then(m => m.Solicitacoes)},
+    {path: 'relatorios', canActivate: [authGuard, funcionarioGuard], loadComponent: () => import('./features/auth/pages/relatorios/relatorios').then(m => m.Relatorios)},
     {path: 'minhas-solicitacoes', canActivate: [authGuard, leitorGuard], loadComponent: () => import('./features/auth/pages/minhas-solicitacoes/minhas-solicitacoes').then(m => m.MinhasSolicitacoes)},
 ];

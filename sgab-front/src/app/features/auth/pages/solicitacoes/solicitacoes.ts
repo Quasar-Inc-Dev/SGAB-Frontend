@@ -51,11 +51,19 @@ export class Solicitacoes implements OnInit {
   carregandoEmprestimos = signal(true);
   erroEmprestimos = signal(false);
   filtroEmprestimo = signal<SituacaoEmprestimo | ''>('');
+  emprestimoParaDevolver = signal<Emprestimo | null>(null);
+  devolvendoId = signal<number | null>(null);
+  emprestimoDevolvidoId = signal<number | null>(null);
+  erroDevolucao = signal('');
 
   reservas = signal<Reserva[]>([]);
   carregandoReservas = signal(true);
   erroReservas = signal(false);
   filtroReserva = signal<ReservaStatus | ''>('');
+  renovandoReservaId = signal<number | null>(null);
+  reservaRenovadaId = signal<number | null>(null);
+  // Separado dos erros de solicitação: reservaId e solicitacaoId podem ter o mesmo número
+  errosReserva = signal<Record<number, string>>({});
 
   readonly etiquetasTipo: Record<SolicitacaoTipo, Etiqueta> = {
     EMPRESTIMO: { label: 'Empréstimo', classes: 'bg-blue-100 text-blue-700' },
@@ -111,10 +119,12 @@ export class Solicitacoes implements OnInit {
   ngOnInit(): void {
     if (!this.isBrowser) return;
 
-    // Pendentes e aguardando retirada carregam já: são o trabalho do dia e os contadores aparecem nas abas.
-    // Empréstimos e reservas (histórico, listas maiores) só carregam quando a aba é aberta.
+    // Pendentes e aguardando retirada carregam já: são o trabalho do dia.
+    // Empréstimos e reservas (histórico, listas maiores) só carregam quando a aba é aberta;
+    // até lá, os contadores das abas vêm de uma consulta leve que só pega o total.
     this.carregarPendentes();
     this.carregarAguardandoRetirada();
+    this.atualizarTotais();
   }
 
   trocarAba(aba: Aba) {
@@ -148,6 +158,7 @@ export class Solicitacoes implements OnInit {
         this.aguardandoRetirada.update(lista => lista.filter(a => a.solicitacaoId !== s.solicitacaoId));
         this.processandoId.set(null);
         if (this.emprestimosCarregados) this.carregarEmprestimos();
+        else this.atualizarTotais();
       },
       error: (err: HttpErrorResponse) => {
         this.erroAnalise(s, err, 'Não foi possível confirmar a retirada.');
@@ -204,6 +215,59 @@ export class Solicitacoes implements OnInit {
     return Math.max(1, Math.floor(ms / 86_400_000));
   }
 
+  // ---------- Devolução de empréstimo ----------
+
+  pedirDevolucao(e: Emprestimo) {
+    this.erroDevolucao.set('');
+    this.emprestimoParaDevolver.set(e);
+  }
+
+  cancelarDevolucao() {
+    if (this.devolvendoId() !== null) return;
+    this.emprestimoParaDevolver.set(null);
+  }
+
+  confirmarDevolucao() {
+    const e = this.emprestimoParaDevolver();
+    if (!e) return;
+
+    this.devolvendoId.set(e.emprestimoId);
+    this.erroDevolucao.set('');
+
+    this.emprestimoService.devolver(e.emprestimoId).subscribe({
+      next: (atualizado) => {
+        this.emprestimos.update(lista => lista.map(item => (item.emprestimoId === atualizado.emprestimoId ? atualizado : item)));
+        this.devolvendoId.set(null);
+        this.emprestimoParaDevolver.set(null);
+        this.emprestimoDevolvidoId.set(atualizado.emprestimoId);
+        // O exemplar pode ter ido para o primeiro da fila: a reserva dele vira "aguardando retirada"
+        if (this.reservasCarregadas) this.carregarReservas();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.devolvendoId.set(null);
+        this.erroDevolucao.set(mensagemErro(err, 'Não foi possível registrar a devolução.'));
+      },
+    });
+  }
+
+  renovarReserva(r: Reserva) {
+    this.renovandoReservaId.set(r.reservaId);
+    this.reservaRenovadaId.set(null);
+    this.errosReserva.update(({ [r.reservaId]: _, ...resto }) => resto);
+
+    this.reservaService.renovar(r.reservaId).subscribe({
+      next: (atualizada) => {
+        this.reservas.update(lista => lista.map(item => (item.reservaId === atualizada.reservaId ? atualizada : item)));
+        this.renovandoReservaId.set(null);
+        this.reservaRenovadaId.set(atualizada.reservaId);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.errosReserva.update(erros => ({ ...erros, [r.reservaId]: mensagemErro(err, 'Não foi possível renovar a reserva.') }));
+        this.renovandoReservaId.set(null);
+      },
+    });
+  }
+
   retiradaVencida(r: Reserva): boolean {
     return r.status === 'AGUARDANDO_RETIRADA' && !!r.dataLimiteRetirada && new Date(r.dataLimiteRetirada) < new Date();
   }
@@ -237,6 +301,25 @@ export class Solicitacoes implements OnInit {
   private emprestimosCarregados = false;
   private reservasCarregadas = false;
 
+  // Contadores das abas de histórico (null = ainda não chegou)
+  totalEmprestimos = signal<number | null>(null);
+  totalReservas = signal<number | null>(null);
+
+  // Pede uma página de 1 item só para ler page.totalElements, sem baixar as listas.
+  // Só para as abas que ainda não foram abertas (as abertas já sabem o total pela lista).
+  private atualizarTotais(): void {
+    if (!this.emprestimosCarregados) {
+      this.emprestimoService.listarPagina({ page: 0, size: 1 }).subscribe({
+        next: (pagina) => this.totalEmprestimos.set(pagina.page.totalElements),
+      });
+    }
+    if (!this.reservasCarregadas) {
+      this.reservaService.listarPagina({ page: 0, size: 1 }).subscribe({
+        next: (pagina) => this.totalReservas.set(pagina.page.totalElements),
+      });
+    }
+  }
+
   private carregarEmprestimos(): void {
     this.emprestimosCarregados = true;
     this.carregandoEmprestimos.set(true);
@@ -244,6 +327,7 @@ export class Solicitacoes implements OnInit {
     this.emprestimoService.listar().subscribe({
       next: (lista) => {
         this.emprestimos.set([...lista].sort((a, b) => b.emprestimoId - a.emprestimoId));
+        this.totalEmprestimos.set(lista.length);
         this.carregandoEmprestimos.set(false);
       },
       error: () => {
@@ -260,6 +344,7 @@ export class Solicitacoes implements OnInit {
     this.reservaService.listar().subscribe({
       next: (lista) => {
         this.reservas.set([...lista].sort((a, b) => b.reservaId - a.reservaId));
+        this.totalReservas.set(lista.length);
         this.carregandoReservas.set(false);
       },
       error: () => {
@@ -274,9 +359,10 @@ export class Solicitacoes implements OnInit {
     this.pendentes.update(lista => lista.filter(p => p.solicitacaoId !== s.solicitacaoId));
     this.processandoId.set(null);
     this.carregarAguardandoRetirada();
-    // As abas de histórico que ainda não foram abertas vão carregar atualizadas quando forem abertas
+    // Abas já abertas recarregam a lista; as outras só atualizam o contador
     if (this.emprestimosCarregados) this.carregarEmprestimos();
     if (this.reservasCarregadas) this.carregarReservas();
+    this.atualizarTotais();
   }
 
   // Em caso de erro (ex.: 409), a solicitação continua pendente e o erro aparece na linha

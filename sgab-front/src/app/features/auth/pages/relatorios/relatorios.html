@@ -1,0 +1,377 @@
+<app-header></app-header>
+
+<section class="mx-auto mt-6 w-full max-w-7xl px-4 sm:px-6">
+    <div class="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Relatórios</h1>
+            <p class="text-xs text-gray-500">Gerado em {{ hoje | date:'dd/MM/yyyy HH:mm' }}</p>
+        </div>
+    </div>
+
+    <div role="tablist" class="abas nao-imprimir mb-4 flex gap-1 overflow-x-auto overflow-y-hidden">
+        @for (opcao of [{ id: 'movimento', rotulo: 'Movimento do semestre' }, { id: 'livros', rotulo: 'Livros mais procurados' }, { id: 'perfil', rotulo: 'Perfil dos leitores' }]; track opcao.id) {
+            <button type="button" role="tab" [attr.aria-selected]="aba() === opcao.id" (click)="aba.set($any(opcao.id))"
+                class="shrink-0 whitespace-nowrap border-b-2 px-4 py-2 text-sm font-medium"
+                [class.border-brand]="aba() === opcao.id" [class.text-brand]="aba() === opcao.id"
+                [class.border-transparent]="aba() !== opcao.id" [class.text-gray-500]="aba() !== opcao.id">
+                {{ opcao.rotulo }}
+            </button>
+        }
+    </div>
+
+    @if (carregando()) {
+        <p class="py-16 text-center text-gray-500">Carregando dados dos relatórios...</p>
+    } @else if (erro()) {
+        <p class="py-16 text-center text-red-600">Não foi possível carregar os dados. Tente novamente mais tarde.</p>
+    } @else {
+
+        <!-- ================= Relatório 1: movimento do semestre ================= -->
+        @if (aba() === 'movimento') {
+            @let r = resumoSemestre();
+            <article class="relatorio rounded-xl bg-white p-5 shadow-md">
+                <header class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-900">Empréstimos e reservas</h2>
+                        <p class="text-sm text-gray-500">{{ semestre.rotulo }}</p>
+                    </div>
+                    <div class="nao-imprimir flex flex-wrap gap-2">
+                        <button type="button" (click)="exportarEmprestimosSemestre()" class="botao-secundario">Empréstimos (CSV)</button>
+                        <button type="button" (click)="exportarReservasSemestre()" class="botao-secundario">Reservas (CSV)</button>
+                        <button type="button" (click)="imprimir()" class="botao-primario">Imprimir / PDF</button>
+                    </div>
+                </header>
+
+                <!-- Indicadores -->
+                <dl class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    <div class="indicador"><dt>Empréstimos</dt><dd>{{ r.emprestimos }}</dd></div>
+                    <div class="indicador"><dt>Reservas</dt><dd>{{ r.reservas }}</dd></div>
+                    <div class="indicador"><dt>Leitores ativos</dt><dd>{{ r.leitoresAtivos }}</dd></div>
+                    <div class="indicador"><dt>Devolvidos</dt><dd>{{ r.devolvidos }}</dd></div>
+                    <div class="indicador"><dt>Em andamento</dt><dd>{{ r.emAndamento }}</dd></div>
+                    <div class="indicador"><dt>Atrasados agora</dt><dd [class.text-red-700]="r.atrasados > 0">{{ r.atrasados }}</dd></div>
+                    <div class="indicador"><dt>Devolvidos com atraso</dt><dd>{{ r.devolvidosComAtraso }}</dd></div>
+                    <div class="indicador"><dt>Taxa de atraso</dt><dd>{{ r.taxaAtraso }}%</dd></div>
+                </dl>
+
+                <!-- Por mês -->
+                <h3 class="mt-6 text-sm font-semibold text-gray-900">Movimento por mês</h3>
+                <div class="mt-2 overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-gray-50 text-[11px] uppercase text-gray-600">
+                            <tr>
+                                <th scope="col" class="px-3 py-2 font-semibold">Mês</th>
+                                <th scope="col" class="px-3 py-2 text-right font-semibold">Empréstimos</th>
+                                <th scope="col" class="px-3 py-2 text-right font-semibold">Reservas</th>
+                                <th scope="col" class="px-3 py-2 text-right font-semibold">Devoluções</th>
+                                <th scope="col" class="hidden w-1/3 px-3 py-2 font-semibold md:table-cell"><span class="sr-only">Comparação</span></th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 tabular-nums">
+                            @for (m of movimentoPorMes(); track m.mes) {
+                                <tr>
+                                    <td class="px-3 py-2 text-gray-900">{{ m.mes }}</td>
+                                    <td class="px-3 py-2 text-right text-gray-700">{{ m.emprestimos }}</td>
+                                    <td class="px-3 py-2 text-right text-gray-700">{{ m.reservas }}</td>
+                                    <td class="px-3 py-2 text-right text-gray-700">{{ m.devolucoes }}</td>
+                                    <td class="hidden px-3 py-2 md:table-cell" aria-hidden="true">
+                                        <div class="flex flex-col gap-[2px]">
+                                            <div class="serie-emprestimo h-1.5 rounded-r" [style.width.%]="(m.emprestimos / maiorDoMes()) * 100"></div>
+                                            <div class="serie-reserva h-1.5 rounded-r" [style.width.%]="(m.reservas / maiorDoMes()) * 100"></div>
+                                            <div class="serie-devolucao h-1.5 rounded-r" [style.width.%]="(m.devolucoes / maiorDoMes()) * 100"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <p class="mt-2 hidden flex-wrap gap-4 text-[11px] text-gray-500 md:flex">
+                    <span class="flex items-center gap-1.5"><span class="serie-emprestimo h-2 w-2 rounded-sm"></span>Empréstimos</span>
+                    <span class="flex items-center gap-1.5"><span class="serie-reserva h-2 w-2 rounded-sm"></span>Reservas</span>
+                    <span class="flex items-center gap-1.5"><span class="serie-devolucao h-2 w-2 rounded-sm"></span>Devoluções</span>
+                </p>
+
+                <!-- Reservas por situação -->
+                @if (reservasPorStatus().length) {
+                    <h3 class="mt-6 text-sm font-semibold text-gray-900">Reservas por situação</h3>
+                    <div class="mt-2 flex flex-wrap gap-2">
+                        @for (s of reservasPorStatus(); track s.rotulo) {
+                            <span class="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-700">{{ s.rotulo }}: <strong class="text-gray-900">{{ s.total }}</strong></span>
+                        }
+                    </div>
+                }
+
+                <!-- Listas detalhadas -->
+                <h3 class="mt-6 text-sm font-semibold text-gray-900">Empréstimos do semestre ({{ emprestimosSemestre().length }})</h3>
+                <div class="mt-2 overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-gray-50 text-[11px] uppercase text-gray-600">
+                            <tr>
+                                <th scope="col" class="px-3 py-2 font-semibold">Livro</th>
+                                <th scope="col" class="px-3 py-2 font-semibold">Leitor</th>
+                                <th scope="col" class="px-3 py-2 font-semibold">Emprestado</th>
+                                <th scope="col" class="px-3 py-2 font-semibold">Previsto</th>
+                                <th scope="col" class="px-3 py-2 font-semibold">Devolvido</th>
+                                <th scope="col" class="px-3 py-2 font-semibold">Situação</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            @for (e of emprestimosSemestre(); track e.emprestimoId) {
+                                @let s = situacao(e);
+                                <tr>
+                                    <td class="max-w-[16rem] px-3 py-2"><p class="truncate text-gray-900" [title]="e.titulo">{{ e.titulo }}</p><p class="text-[11px] text-gray-500">{{ e.tombo }}</p></td>
+                                    <td class="px-3 py-2 text-gray-700">{{ e.nomeLeitor }}</td>
+                                    <td class="whitespace-nowrap px-3 py-2 text-gray-700">{{ e.dataEmprestimo | date:'dd/MM/yyyy' }}</td>
+                                    <td class="whitespace-nowrap px-3 py-2 text-gray-700">{{ e.dataDevolucaoPrevista | date:'dd/MM/yyyy' }}</td>
+                                    <td class="whitespace-nowrap px-3 py-2 text-gray-700">{{ (e.dataDevolucao | date:'dd/MM/yyyy') ?? '-' }}</td>
+                                    <td class="whitespace-nowrap px-3 py-2" [class.text-red-700]="s === 'Atrasado' || s === 'Devolvido com atraso'" [class.text-gray-700]="s === 'Em andamento' || s === 'Devolvido'">{{ s }}</td>
+                                </tr>
+                            } @empty {
+                                <tr><td colspan="6" class="px-3 py-6 text-center text-gray-500">Nenhum empréstimo no semestre.</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 class="mt-6 text-sm font-semibold text-gray-900">Reservas do semestre ({{ reservasSemestre().length }})</h3>
+                <div class="mt-2 overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-gray-50 text-[11px] uppercase text-gray-600">
+                            <tr>
+                                <th scope="col" class="px-3 py-2 font-semibold">Livro</th>
+                                <th scope="col" class="px-3 py-2 font-semibold">Leitor</th>
+                                <th scope="col" class="px-3 py-2 font-semibold">Reservado</th>
+                                <th scope="col" class="px-3 py-2 font-semibold">Retirar até</th>
+                                <th scope="col" class="px-3 py-2 font-semibold">Situação</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            @for (res of reservasSemestre(); track res.reservaId) {
+                                <tr>
+                                    <td class="max-w-[16rem] px-3 py-2"><p class="truncate text-gray-900" [title]="res.titulo">{{ res.titulo }}</p></td>
+                                    <td class="px-3 py-2 text-gray-700">{{ res.nomeLeitor }}</td>
+                                    <td class="whitespace-nowrap px-3 py-2 text-gray-700">{{ res.dataReserva | date:'dd/MM/yyyy' }}</td>
+                                    <td class="whitespace-nowrap px-3 py-2 text-gray-700">{{ (res.dataLimiteRetirada | date:'dd/MM/yyyy') ?? '-' }}</td>
+                                    <td class="whitespace-nowrap px-3 py-2 text-gray-700">{{ rotulo(res.status) }}</td>
+                                </tr>
+                            } @empty {
+                                <tr><td colspan="5" class="px-3 py-6 text-center text-gray-500">Nenhuma reserva no semestre.</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+        }
+
+        <!-- ================= Relatório 2: livros mais procurados ================= -->
+        @if (aba() === 'livros') {
+            <article class="relatorio rounded-xl bg-white p-5 shadow-md">
+                <header class="mb-5 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-900">Livros mais emprestados e reservados</h2>
+                        <p class="text-sm text-gray-500">{{ intervaloLivros().rotulo }}</p>
+                    </div>
+                    <div class="nao-imprimir flex flex-wrap items-center gap-2">
+                        <select [value]="periodoLivros()" (change)="mudarPeriodoLivros($event)" aria-label="Período" class="campo">
+                            <option value="semestre">Semestre atual</option>
+                            <option value="ano">Ano atual</option>
+                            <option value="tudo">Todo o período</option>
+                        </select>
+                        <select [value]="ordenacaoLivros()" (change)="mudarOrdenacaoLivros($event)" aria-label="Ordenar por" class="campo">
+                            <option value="total">Ordenar por total</option>
+                            <option value="emprestimos">Ordenar por empréstimos</option>
+                            <option value="reservas">Ordenar por reservas</option>
+                        </select>
+                        <select [value]="limiteLivros()" (change)="mudarLimiteLivros($event)" aria-label="Quantidade" class="campo">
+                            <option value="10">Top 10</option>
+                            <option value="20">Top 20</option>
+                            <option value="50">Top 50</option>
+                        </select>
+                        <button type="button" (click)="exportarLivros()" class="botao-secundario">Exportar CSV</button>
+                        <button type="button" (click)="imprimir()" class="botao-primario">Imprimir / PDF</button>
+                    </div>
+                </header>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-gray-50 text-[11px] uppercase text-gray-600">
+                            <tr>
+                                <th scope="col" class="px-3 py-2 font-semibold">#</th>
+                                <th scope="col" class="px-3 py-2 font-semibold">Livro</th>
+                                <th scope="col" class="hidden px-3 py-2 font-semibold md:table-cell">Gênero</th>
+                                <th scope="col" class="hidden px-3 py-2 font-semibold lg:table-cell">Área</th>
+                                <th scope="col" class="px-3 py-2 text-right font-semibold">Empréstimos</th>
+                                <th scope="col" class="px-3 py-2 text-right font-semibold">Reservas</th>
+                                <th scope="col" class="px-3 py-2 text-right font-semibold">Total</th>
+                                <th scope="col" class="hidden w-1/5 px-3 py-2 md:table-cell"><span class="sr-only">Comparação</span></th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            @for (l of livrosOrdenados(); track l.livroId; let i = $index) {
+                                <tr>
+                                    <td class="px-3 py-2 font-semibold text-gray-500">{{ i + 1 }}</td>
+                                    <td class="max-w-[18rem] px-3 py-2">
+                                        <p class="truncate font-medium text-gray-900" [title]="l.titulo">{{ l.titulo }}</p>
+                                        <p class="truncate text-[11px] text-gray-500">{{ l.autor }}</p>
+                                    </td>
+                                    <td class="hidden px-3 py-2 text-gray-700 md:table-cell">{{ l.genero }}</td>
+                                    <td class="hidden px-3 py-2 text-gray-700 lg:table-cell">{{ l.area }}</td>
+                                    <td class="px-3 py-2 text-right tabular-nums text-gray-700" [class.font-semibold]="ordenacaoLivros() === 'emprestimos'">{{ l.emprestimos }}</td>
+                                    <td class="px-3 py-2 text-right tabular-nums text-gray-700" [class.font-semibold]="ordenacaoLivros() === 'reservas'">{{ l.reservas }}</td>
+                                    <td class="px-3 py-2 text-right tabular-nums text-gray-900" [class.font-semibold]="ordenacaoLivros() === 'total'">{{ l.total }}</td>
+                                    <td class="hidden px-3 py-2 md:table-cell" aria-hidden="true">
+                                        <div class="trilho h-2 w-full rounded-full">
+                                            <div class="serie-emprestimo h-2 rounded-full" [style.width.%]="(l[ordenacaoLivros()] / maiorLivro()) * 100"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            } @empty {
+                                <tr><td colspan="8" class="px-3 py-6 text-center text-gray-500">Nenhum empréstimo ou reserva no período.</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                @if (livrosSemMovimento() > 0) {
+                    <p class="mt-4 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-600">
+                        {{ livrosSemMovimento() }} {{ livrosSemMovimento() === 1 ? 'livro ativo do acervo não foi emprestado nem reservado' : 'livros ativos do acervo não foram emprestados nem reservados' }} neste período.
+                    </p>
+                }
+            </article>
+        }
+
+        <!-- ================= Relatório 3: perfil dos leitores ================= -->
+        @if (aba() === 'perfil') {
+            <article class="relatorio rounded-xl bg-white p-5 shadow-md">
+                <header class="mb-5 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-900">Comportamento e perfil dos leitores</h2>
+                        <p class="text-sm text-gray-500">{{ intervaloPerfil().rotulo }} · com base em {{ totalInteracoes() }} empréstimos e reservas de {{ leitoresComInteracao() }} leitores</p>
+                    </div>
+                    <div class="nao-imprimir flex flex-wrap items-center gap-2">
+                        <select [value]="periodoPerfil()" (change)="mudarPeriodoPerfil($event)" aria-label="Período" class="campo">
+                            <option value="semestre">Semestre atual</option>
+                            <option value="ano">Ano atual</option>
+                            <option value="tudo">Todo o período</option>
+                        </select>
+                        <button type="button" (click)="exportarPreferencias()" class="botao-secundario">Preferências (CSV)</button>
+                        <button type="button" (click)="exportarPerfis()" class="botao-secundario">Perfis (CSV)</button>
+                        <button type="button" (click)="imprimir()" class="botao-primario">Imprimir / PDF</button>
+                    </div>
+                </header>
+
+                <!-- Preferências gerais -->
+                <h3 class="text-sm font-semibold text-gray-900">Preferências gerais</h3>
+                <p class="text-xs text-gray-500">Quantas vezes cada item aparece nos livros emprestados e reservados</p>
+                <div class="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    <app-lista-barras titulo="Gêneros" [itens]="generos()" />
+                    <app-lista-barras titulo="Áreas" [itens]="areas()" />
+                    <app-lista-barras titulo="Assuntos" subtitulo="A partir das tags dos livros" [itens]="assuntos()" />
+                    <app-lista-barras titulo="Autores" [itens]="autores()" />
+                </div>
+
+                <!-- Por grupo de leitores -->
+                @for (bloco of [
+                    { titulo: 'Por tipo de leitor', linhas: porTipoLeitor() },
+                    { titulo: 'Por faixa etária', linhas: porFaixaEtaria() },
+                    { titulo: 'Por gênero do leitor', linhas: porGeneroLeitor() }
+                ]; track bloco.titulo) {
+                    <h3 class="mt-6 text-sm font-semibold text-gray-900">{{ bloco.titulo }}</h3>
+                    <div class="mt-2 overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-gray-50 text-[11px] uppercase text-gray-600">
+                                <tr>
+                                    <th scope="col" class="px-3 py-2 font-semibold">Grupo</th>
+                                    <th scope="col" class="px-3 py-2 text-right font-semibold">Cadastrados</th>
+                                    <th scope="col" class="px-3 py-2 text-right font-semibold">Ativos</th>
+                                    <th scope="col" class="px-3 py-2 text-right font-semibold">Empréstimos + reservas</th>
+                                    <th scope="col" class="px-3 py-2 text-right font-semibold">Média por ativo</th>
+                                    <th scope="col" class="px-3 py-2 font-semibold">Gênero preferido</th>
+                                    <th scope="col" class="px-3 py-2 font-semibold">Área preferida</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                @for (g of bloco.linhas; track g.grupo) {
+                                    <tr>
+                                        <td class="px-3 py-2 font-medium text-gray-900">{{ g.grupo }}</td>
+                                        <td class="px-3 py-2 text-right tabular-nums text-gray-700">{{ g.cadastrados }}</td>
+                                        <td class="px-3 py-2 text-right tabular-nums text-gray-700">{{ g.ativos }}</td>
+                                        <td class="px-3 py-2 text-right tabular-nums text-gray-700">{{ g.interacoes }}</td>
+                                        <td class="px-3 py-2 text-right tabular-nums text-gray-700">{{ g.media }}</td>
+                                        <td class="px-3 py-2 text-gray-700">{{ g.generoFavorito }}</td>
+                                        <td class="px-3 py-2 text-gray-700">{{ g.areaFavorita }}</td>
+                                    </tr>
+                                } @empty {
+                                    <tr><td colspan="7" class="px-3 py-6 text-center text-gray-500">Sem leitores cadastrados.</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+
+                <!-- Perfil individual -->
+                <div class="mt-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-900">Perfil de cada leitor</h3>
+                        <p class="text-xs text-gray-500">Leitores com empréstimo ou reserva no período, dos mais ativos para os menos</p>
+                    </div>
+                    <input type="search" [value]="buscaPerfil()" (input)="onBuscaPerfil($event)" placeholder="Buscar leitor" aria-label="Buscar leitor"
+                        class="nao-imprimir campo w-full sm:w-60">
+                </div>
+                <div class="mt-2 overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-gray-50 text-[11px] uppercase text-gray-600">
+                            <tr>
+                                <th scope="col" class="px-3 py-2 font-semibold">Leitor</th>
+                                <th scope="col" class="px-3 py-2 text-right font-semibold">Empr.</th>
+                                <th scope="col" class="px-3 py-2 text-right font-semibold">Res.</th>
+                                <th scope="col" class="px-3 py-2 font-semibold">Gênero preferido</th>
+                                <th scope="col" class="hidden px-3 py-2 font-semibold md:table-cell">Área preferida</th>
+                                <th scope="col" class="hidden px-3 py-2 font-semibold lg:table-cell">Assuntos</th>
+                                <th scope="col" class="px-3 py-2 text-right font-semibold">Atrasos</th>
+                                <th scope="col" class="hidden px-3 py-2 font-semibold md:table-cell">Última atividade</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            @for (p of perfisPaginados(); track p.leitorId) {
+                                <tr>
+                                    <td class="px-3 py-2">
+                                        <p class="font-medium text-gray-900">{{ p.nome }}</p>
+                                        <p class="text-[11px] text-gray-500">{{ p.tipo }} · {{ p.faixa }}</p>
+                                    </td>
+                                    <td class="px-3 py-2 text-right tabular-nums text-gray-700">{{ p.emprestimos }}</td>
+                                    <td class="px-3 py-2 text-right tabular-nums text-gray-700">{{ p.reservas }}</td>
+                                    <td class="px-3 py-2 text-gray-700">{{ p.generoFavorito }}</td>
+                                    <td class="hidden px-3 py-2 text-gray-700 md:table-cell">{{ p.areaFavorita }}</td>
+                                    <td class="hidden px-3 py-2 lg:table-cell">
+                                        <div class="flex flex-wrap gap-1">
+                                            @for (a of p.assuntos; track a) {
+                                                <span class="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-700">{{ a }}</span>
+                                            } @empty {
+                                                <span class="text-gray-400">-</span>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td class="px-3 py-2 text-right tabular-nums" [class.font-semibold]="p.atrasos > 0" [class.text-red-700]="p.atrasos > 0" [class.text-gray-700]="p.atrasos === 0">{{ p.atrasos }}</td>
+                                    <td class="hidden whitespace-nowrap px-3 py-2 text-gray-700 md:table-cell">{{ p.ultimaAtividade | date:'dd/MM/yyyy' }}</td>
+                                </tr>
+                            } @empty {
+                                <tr><td colspan="8" class="px-3 py-6 text-center text-gray-500">Nenhum leitor com movimento no período.</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                @if (totalPaginasPerfil() > 1) {
+                    <nav aria-label="Paginação dos perfis" class="nao-imprimir mt-3 flex items-center justify-center gap-3">
+                        <button type="button" (click)="irParaPaginaPerfil(paginaPerfil() - 1)" [disabled]="paginaPerfil() === 1" class="botao-secundario disabled:opacity-40">Anterior</button>
+                        <span class="text-xs text-gray-600">Página {{ paginaPerfil() }} de {{ totalPaginasPerfil() }}</span>
+                        <button type="button" (click)="irParaPaginaPerfil(paginaPerfil() + 1)" [disabled]="paginaPerfil() === totalPaginasPerfil()" class="botao-secundario disabled:opacity-40">Próxima</button>
+                    </nav>
+                }
+            </article>
+        }
+    }
+</section>
+
+<app-footer></app-footer>

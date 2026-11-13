@@ -29,6 +29,11 @@ export class ReservaService {
         return this.http.post<Reserva>(`${this.apiUrl}api/reservas`, null, { params: { ...dados } });
     }
 
+    // Estende o prazo de retirada (dataLimiteRetirada) e soma 1 em renovacoes. Só funcionário/administrador
+    renovar(id: number) {
+        return this.http.patch<Reserva>(`${this.apiUrl}api/reservas/${id}/renovar`, null);
+    }
+
     cancelar(id: number) {
         return this.http.patch<Reserva>(`${this.apiUrl}api/reservas/${id}/cancelar`, null);
     }

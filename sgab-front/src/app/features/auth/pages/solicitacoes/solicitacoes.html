@@ -14,13 +14,13 @@
         >
     </div>
 
-    <div role="tablist" class="mb-4 flex gap-1 overflow-x-auto border-b border-gray-200">
+    <div role="tablist" class="abas mb-4 flex gap-1 overflow-x-auto overflow-y-hidden">
         <button
             type="button"
             role="tab"
             [attr.aria-selected]="aba() === 'pendentes'"
             (click)="trocarAba('pendentes')"
-            class="-mb-px border-b-2 px-4 py-2 text-sm font-medium"
+            class="shrink-0 whitespace-nowrap border-b-2 px-4 py-2 text-sm font-medium"
             [class.border-brand]="aba() === 'pendentes'"
             [class.text-brand]="aba() === 'pendentes'"
             [class.border-transparent]="aba() !== 'pendentes'"
@@ -38,7 +38,7 @@
             role="tab"
             [attr.aria-selected]="aba() === 'retirada'"
             (click)="trocarAba('retirada')"
-            class="-mb-px whitespace-nowrap border-b-2 px-4 py-2 text-sm font-medium"
+            class="shrink-0 whitespace-nowrap border-b-2 px-4 py-2 text-sm font-medium"
             [class.border-brand]="aba() === 'retirada'"
             [class.text-brand]="aba() === 'retirada'"
             [class.border-transparent]="aba() !== 'retirada'"
@@ -52,15 +52,15 @@
             role="tab"
             [attr.aria-selected]="aba() === 'emprestimos'"
             (click)="trocarAba('emprestimos')"
-            class="-mb-px border-b-2 px-4 py-2 text-sm font-medium"
+            class="shrink-0 whitespace-nowrap border-b-2 px-4 py-2 text-sm font-medium"
             [class.border-brand]="aba() === 'emprestimos'"
             [class.text-brand]="aba() === 'emprestimos'"
             [class.border-transparent]="aba() !== 'emprestimos'"
             [class.text-gray-500]="aba() !== 'emprestimos'"
         >
             Empréstimos
-            @if (!carregandoEmprestimos()) {
-                <span class="ml-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">{{ emprestimos().length }}</span>
+            @if (totalEmprestimos() !== null) {
+                <span class="ml-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">{{ totalEmprestimos() }}</span>
             }
         </button>
         <button
@@ -68,15 +68,15 @@
             role="tab"
             [attr.aria-selected]="aba() === 'reservas'"
             (click)="trocarAba('reservas')"
-            class="-mb-px border-b-2 px-4 py-2 text-sm font-medium"
+            class="shrink-0 whitespace-nowrap border-b-2 px-4 py-2 text-sm font-medium"
             [class.border-brand]="aba() === 'reservas'"
             [class.text-brand]="aba() === 'reservas'"
             [class.border-transparent]="aba() !== 'reservas'"
             [class.text-gray-500]="aba() !== 'reservas'"
         >
             Reservas
-            @if (!carregandoReservas()) {
-                <span class="ml-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">{{ reservas().length }}</span>
+            @if (totalReservas() !== null) {
+                <span class="ml-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">{{ totalReservas() }}</span>
             }
         </button>
     </div>
@@ -113,7 +113,7 @@
                             <th scope="col" class="px-3 py-2 font-semibold">Livro</th>
                             <th scope="col" class="px-3 py-2 font-semibold">Leitor</th>
                             <th scope="col" class="hidden px-3 py-2 font-semibold md:table-cell">Solicitado em</th>
-                            <th scope="col" class="px-3 py-2 text-center font-semibold">Ações</th>
+                            <th scope="col" class="coluna-acao px-3 py-2 text-center font-semibold">Ações</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
@@ -136,7 +136,7 @@
                                     <p class="text-[11px] capitalize text-gray-500">{{ s.tipoLeitor | lowercase }}</p>
                                 </td>
                                 <td class="hidden whitespace-nowrap px-3 py-2 align-top text-gray-600 md:table-cell">{{ s.dataSolicitacao | date:'dd/MM/yyyy HH:mm' }}</td>
-                                <td class="px-3 py-2 align-top">
+                                <td class="coluna-acao px-3 py-2 align-top">
                                     <div class="flex items-center justify-center gap-2">
                                         <button type="button" (click)="aprovar(s)" [disabled]="processandoId() !== null"
                                             class="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50">
@@ -178,7 +178,7 @@
                             <th scope="col" class="px-3 py-2 font-semibold">Leitor</th>
                             <th scope="col" class="hidden px-3 py-2 font-semibold md:table-cell">Aprovado em</th>
                             <th scope="col" class="px-3 py-2 font-semibold">Retirar até</th>
-                            <th scope="col" class="px-3 py-2 text-center font-semibold">Ação</th>
+                            <th scope="col" class="coluna-acao px-3 py-2 text-center font-semibold">Ação</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
@@ -208,7 +208,7 @@
                                         <p class="text-[11px] font-normal">Prazo vencido</p>
                                     }
                                 </td>
-                                <td class="px-3 py-2 align-top">
+                                <td class="coluna-acao px-3 py-2 align-top">
                                     <div class="flex justify-center">
                                         <button type="button" (click)="confirmarRetirada(s)" [disabled]="processandoId() !== null || vencido"
                                             class="whitespace-nowrap rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50">
@@ -263,6 +263,7 @@
                             <th scope="col" class="px-3 py-2 font-semibold">Devolução prevista</th>
                             <th scope="col" class="hidden px-3 py-2 font-semibold md:table-cell">Devolvido em</th>
                             <th scope="col" class="px-3 py-2 font-semibold">Situação</th>
+                            <th scope="col" class="coluna-acao px-3 py-2 text-center font-semibold">Ação</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
@@ -288,10 +289,22 @@
                                         <p class="mt-0.5 text-[11px] text-red-600">{{ diasAtraso(e) }} {{ diasAtraso(e) === 1 ? 'dia' : 'dias' }}</p>
                                     }
                                 </td>
+                                <td class="coluna-acao px-3 py-2">
+                                    @if (sit !== 'DEVOLVIDO') {
+                                        <div class="flex justify-center">
+                                            <button type="button" (click)="pedirDevolucao(e)" [disabled]="devolvendoId() !== null"
+                                                class="whitespace-nowrap rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50">
+                                                Registrar devolução
+                                            </button>
+                                        </div>
+                                    } @else if (emprestimoDevolvidoId() === e.emprestimoId) {
+                                        <p role="status" class="text-center text-[11px] font-medium text-green-700">Devolução registrada.</p>
+                                    }
+                                </td>
                             </tr>
                         } @empty {
                             <tr>
-                                <td colspan="7" class="px-3 py-6 text-center text-gray-500">Nenhum empréstimo encontrado.</td>
+                                <td colspan="8" class="px-3 py-6 text-center text-gray-500">Nenhum empréstimo encontrado.</td>
                             </tr>
                         }
                     </tbody>
@@ -331,6 +344,7 @@
                             <th scope="col" class="hidden px-3 py-2 font-semibold md:table-cell">Reservado em</th>
                             <th scope="col" class="px-3 py-2 font-semibold">Retirar até</th>
                             <th scope="col" class="px-3 py-2 font-semibold">Situação</th>
+                            <th scope="col" class="coluna-acao px-3 py-2 text-center font-semibold">Ação</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
@@ -347,6 +361,9 @@
                                 <td class="hidden whitespace-nowrap px-3 py-2 text-gray-600 md:table-cell">{{ r.dataReserva | date:'dd/MM/yyyy' }}</td>
                                 <td class="whitespace-nowrap px-3 py-2 text-gray-600" [class.font-semibold]="retiradaVencida(r)" [class.text-red-600]="retiradaVencida(r)">
                                     {{ (r.dataLimiteRetirada | date:'dd/MM/yyyy') ?? '-' }}
+                                    @if (r.renovacoes) {
+                                        <p class="text-[11px] font-normal text-gray-500">Renovada {{ r.renovacoes }}x</p>
+                                    }
                                 </td>
                                 <td class="px-3 py-2">
                                     <span class="whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-medium" [class]="etiquetasReserva[r.status].classes">
@@ -356,10 +373,26 @@
                                         <p class="mt-0.5 text-[11px] text-red-600">Prazo vencido</p>
                                     }
                                 </td>
+                                <td class="coluna-acao px-3 py-2">
+                                    @if (r.status === 'AGUARDANDO_RETIRADA') {
+                                        <div class="flex justify-center">
+                                            <button type="button" (click)="renovarReserva(r)" [disabled]="renovandoReservaId() !== null"
+                                                class="whitespace-nowrap rounded-lg border border-brand px-3 py-1.5 text-xs font-semibold text-brand hover:bg-brand/10 disabled:cursor-not-allowed disabled:opacity-50">
+                                                {{ renovandoReservaId() === r.reservaId ? 'Renovando...' : 'Renovar prazo' }}
+                                            </button>
+                                        </div>
+                                    }
+                                    @if (errosReserva()[r.reservaId]; as erro) {
+                                        <p role="alert" class="mt-1 max-w-xs text-center text-[11px] text-red-600">{{ erro }}</p>
+                                    }
+                                    @if (reservaRenovadaId() === r.reservaId) {
+                                        <p role="status" class="mt-1 text-center text-[11px] text-green-700">Prazo renovado.</p>
+                                    }
+                                </td>
                             </tr>
                         } @empty {
                             <tr>
-                                <td colspan="6" class="px-3 py-6 text-center text-gray-500">Nenhuma reserva encontrada.</td>
+                                <td colspan="7" class="px-3 py-6 text-center text-gray-500">Nenhuma reserva encontrada.</td>
                             </tr>
                         }
                     </tbody>
@@ -368,6 +401,48 @@
         }
     }
 </section>
+
+@if (emprestimoParaDevolver(); as e) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" (click)="cancelarDevolucao()">
+        <div
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="titulo-devolucao"
+            aria-describedby="texto-devolucao"
+            class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
+            (click)="$event.stopPropagation()"
+        >
+            <h2 id="titulo-devolucao" class="text-lg font-semibold text-gray-900">Registrar devolução</h2>
+            <div id="texto-devolucao" class="mt-2 space-y-2 text-sm text-gray-600">
+                <p>
+                    Confirma que <span class="font-medium text-gray-900">{{ e.nomeLeitor }}</span> devolveu
+                    <span class="font-medium text-gray-900">{{ e.titulo }}</span> (exemplar {{ e.tombo }})?
+                </p>
+                @if (situacao(e) === 'ATRASADO') {
+                    <p class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                        Devolução com {{ diasAtraso(e) }} {{ diasAtraso(e) === 1 ? 'dia' : 'dias' }} de atraso.
+                    </p>
+                }
+                <p class="text-xs text-gray-500">
+                    O exemplar vai para o próximo leitor da fila de reserva, ou fica disponível se ninguém estiver esperando.
+                </p>
+            </div>
+
+            @if (erroDevolucao()) {
+                <p role="alert" class="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{{ erroDevolucao() }}</p>
+            }
+
+            <div class="mt-6 flex justify-end gap-3">
+                <button type="button" (click)="cancelarDevolucao()" [disabled]="devolvendoId() !== null" class="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50">
+                    Cancelar
+                </button>
+                <button type="button" (click)="confirmarDevolucao()" [disabled]="devolvendoId() !== null" class="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60">
+                    {{ devolvendoId() !== null ? 'Registrando...' : 'Confirmar devolução' }}
+                </button>
+            </div>
+        </div>
+    </div>
+}
 
 @if (solicitacaoRecusando(); as s) {
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" (click)="fecharRecusa()">

@@ -13,6 +13,9 @@
 
 <app-header></app-header>
 
+@if (isFuncionario) {
+    <app-painel-funcionario />
+} @else {
 <section class="mx-auto mt-6 flex w-full max-w-7xl flex-1 flex-col items-start gap-4 px-4 sm:px-6 md:flex-row md:gap-6">
     <div class="order-1 flex w-full flex-1 flex-col gap-4">
         <div class="flex items-center justify-between gap-4">
@@ -125,5 +128,6 @@
         </button>
     </aside>
 </section>
+}
 
 <app-footer></app-footer>

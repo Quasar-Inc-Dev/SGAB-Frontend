@@ -7,16 +7,21 @@ import { LivroService } from '../../../../core/services/livro';
 import { Livro } from '../../../../core/models/livro';
 import { Footer } from '../../../../shared/footer/footer';
 import { CapaPipe } from '../../../../shared/pipes/capa.pipe';
+import { auth } from '../../../../core/auth/auth';
+import { PainelFuncionario } from './painel-funcionario/painel-funcionario';
 
 @Component({
   selector: 'app-tela-home',
-  imports: [Header, Footer, FormsModule, RouterLink, CapaPipe],
+  imports: [Header, Footer, FormsModule, RouterLink, CapaPipe, PainelFuncionario],
   templateUrl: './tela-home.html',
   styleUrl: './tela-home.scss',
 })
 export class TelaHome implements OnInit {
   private livroService = inject(LivroService);
   private isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+
+  // Funcionário/administrador vê o painel da biblioteca no lugar do catálogo
+  readonly isFuncionario = inject(auth).isFuncionario();
 
   livros = signal<Livro[]>([]);
   carregando = signal(true);
@@ -74,6 +79,9 @@ export class TelaHome implements OnInit {
     if (!this.isBrowser) return;
 
     if (sessionStorage.getItem(this.chaveSplashVisto)) this.entrou.set(true);
+
+    // O painel do funcionário busca os próprios dados; o catálogo não é usado
+    if (this.isFuncionario) return;
 
     this.livroService.getAll().subscribe({
       next: (livros) => {

@@ -1,0 +1,269 @@
+<section class="mx-auto mt-6 w-full max-w-7xl px-4 sm:px-6">
+    <div class="mb-4">
+        <h1 class="text-2xl font-bold text-gray-900">Painel da biblioteca</h1>
+        <p class="text-sm text-gray-500">{{ semestre.rotulo }}</p>
+    </div>
+
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-6">
+
+        <!-- Card 1: empréstimos e reservas por mês -->
+        <article class="rounded-xl bg-white p-5 shadow-md lg:col-span-2" aria-labelledby="titulo-grafico">
+            <header class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                    <h2 id="titulo-grafico" class="text-base font-semibold text-gray-900">Movimento do semestre</h2>
+                    <p class="text-xs text-gray-500">Empréstimos e reservas registrados por mês</p>
+                </div>
+                <!-- Legenda + totais (identidade nunca só pela cor) -->
+                <dl class="flex gap-5">
+                    <div class="flex items-center gap-2">
+                        <span class="amostra-emprestimo h-3 w-3 rounded-sm" aria-hidden="true"></span>
+                        <div>
+                            <dt class="text-xs text-gray-500">Empréstimos</dt>
+                            <dd class="text-lg font-semibold leading-tight text-gray-900">{{ carregandoMovimento() ? '–' : totalEmprestimos() }}</dd>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="amostra-reserva h-3 w-3 rounded-sm" aria-hidden="true"></span>
+                        <div>
+                            <dt class="text-xs text-gray-500">Reservas</dt>
+                            <dd class="text-lg font-semibold leading-tight text-gray-900">{{ carregandoMovimento() ? '–' : totalReservas() }}</dd>
+                        </div>
+                    </div>
+                </dl>
+            </header>
+
+            @if (carregandoMovimento()) {
+                <p class="py-16 text-center text-sm text-gray-500">Carregando dados...</p>
+            } @else if (erroMovimento()) {
+                <p class="py-16 text-center text-sm text-red-600">Não foi possível carregar os empréstimos e reservas.</p>
+            } @else {
+                <div class="relative h-52" [class.grafico-com-foco]="mesEmFoco() !== null">
+                    <!-- Grade e eixo Y -->
+                    @for (marca of eixo().marcas; track marca) {
+                        <div class="absolute left-8 right-0" [class.grade]="marca > 0" [class.linha-base]="marca === 0" [style.bottom.%]="altura(marca)">
+                            <span class="absolute -left-8 w-6 -translate-y-1/2 text-right text-[11px] tabular-nums text-gray-400">{{ marca }}</span>
+                        </div>
+                    }
+
+                    <!-- Colunas: cada mês é a área de hover/foco (maior que as barras) -->
+                    <div class="absolute inset-y-0 left-8 right-0 flex">
+                        @for (mes of meses(); track mes.rotulo; let i = $index) {
+                            <div
+                                tabindex="0"
+                                class="grupo-mes relative flex h-full flex-1 items-end justify-center gap-[2px] px-2 outline-none focus-visible:rounded focus-visible:ring-2 focus-visible:ring-brand/40"
+                                [class.em-foco]="mesEmFoco() === i"
+                                [attr.aria-label]="mes.rotuloLongo + ': ' + mes.emprestimos + ' empréstimos e ' + mes.reservas + ' reservas'"
+                                (mouseenter)="mesEmFoco.set(i)"
+                                (mouseleave)="mesEmFoco.set(null)"
+                                (focus)="mesEmFoco.set(i)"
+                                (blur)="mesEmFoco.set(null)"
+                            >
+                                <div class="coluna coluna-emprestimo" [style.height.%]="altura(mes.emprestimos)"></div>
+                                <div class="coluna coluna-reserva" [style.height.%]="altura(mes.reservas)"></div>
+
+                                @if (mesEmFoco() === i) {
+                                    <!-- Nas pontas o tooltip encosta na borda para não sair do card -->
+                                    <div role="tooltip" class="pointer-events-none absolute top-0 z-10 w-max rounded-lg border border-black/10 bg-white px-3 py-2 text-xs shadow-lg"
+                                        [style.left]="i < 2 ? '0' : i > 3 ? 'auto' : '50%'"
+                                        [style.right]="i > 3 ? '0' : 'auto'"
+                                        [style.transform]="i >= 2 && i <= 3 ? 'translateX(-50%)' : 'none'">
+                                        <p class="mb-1 font-semibold text-gray-900">{{ mes.rotuloLongo }}</p>
+                                        <p class="flex items-center gap-2 text-gray-600">
+                                            <span class="amostra-emprestimo h-2 w-2 rounded-sm" aria-hidden="true"></span>
+                                            Empréstimos <span class="ml-auto pl-3 font-semibold tabular-nums text-gray-900">{{ mes.emprestimos }}</span>
+                                        </p>
+                                        <p class="flex items-center gap-2 text-gray-600">
+                                            <span class="amostra-reserva h-2 w-2 rounded-sm" aria-hidden="true"></span>
+                                            Reservas <span class="ml-auto pl-3 font-semibold tabular-nums text-gray-900">{{ mes.reservas }}</span>
+                                        </p>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Eixo X -->
+                <div class="ml-8 mt-2 flex">
+                    @for (mes of meses(); track mes.rotulo) {
+                        <span class="flex-1 text-center text-xs" [class.font-semibold]="mes.atual" [class.text-gray-900]="mes.atual" [class.text-gray-500]="!mes.atual">
+                            {{ mes.rotulo }}
+                        </span>
+                    }
+                </div>
+
+                <!-- Mesmos dados em tabela (acessibilidade) -->
+                <details class="mt-4 text-sm">
+                    <summary class="cursor-pointer text-xs font-medium text-brand hover:underline">Ver em tabela</summary>
+                    <table class="mt-2 w-full text-left text-xs">
+                        <thead class="text-gray-500">
+                            <tr>
+                                <th scope="col" class="py-1 font-medium">Mês</th>
+                                <th scope="col" class="py-1 text-right font-medium">Empréstimos</th>
+                                <th scope="col" class="py-1 text-right font-medium">Reservas</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 tabular-nums text-gray-700">
+                            @for (mes of meses(); track mes.rotulo) {
+                                <tr>
+                                    <td class="py-1">{{ mes.rotuloLongo }}</td>
+                                    <td class="py-1 text-right">{{ mes.emprestimos }}</td>
+                                    <td class="py-1 text-right">{{ mes.reservas }}</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </details>
+            }
+        </article>
+
+        <!-- Card 2: placar -->
+        <article class="rounded-xl bg-white p-5 shadow-md" aria-labelledby="titulo-placar">
+            <header class="mb-3">
+                <h2 id="titulo-placar" class="text-base font-semibold text-gray-900">Mais procurados</h2>
+                <p class="text-xs text-gray-500">Top 5 do semestre</p>
+            </header>
+
+            <div role="tablist" class="mb-3 flex rounded-lg bg-gray-100 p-1 text-xs font-medium">
+                <button type="button" role="tab" [attr.aria-selected]="placarAtivo() === 'emprestimos'" (click)="placarAtivo.set('emprestimos')"
+                    class="flex-1 rounded-md px-2 py-1.5"
+                    [class.bg-white]="placarAtivo() === 'emprestimos'" [class.shadow-sm]="placarAtivo() === 'emprestimos'" [class.text-gray-900]="placarAtivo() === 'emprestimos'" [class.text-gray-500]="placarAtivo() !== 'emprestimos'">
+                    Emprestados
+                </button>
+                <button type="button" role="tab" [attr.aria-selected]="placarAtivo() === 'reservas'" (click)="placarAtivo.set('reservas')"
+                    class="flex-1 rounded-md px-2 py-1.5"
+                    [class.bg-white]="placarAtivo() === 'reservas'" [class.shadow-sm]="placarAtivo() === 'reservas'" [class.text-gray-900]="placarAtivo() === 'reservas'" [class.text-gray-500]="placarAtivo() !== 'reservas'">
+                    Reservados
+                </button>
+            </div>
+
+            @if (carregandoMovimento()) {
+                <p class="py-10 text-center text-sm text-gray-500">Carregando...</p>
+            } @else if (erroMovimento()) {
+                <p class="py-10 text-center text-sm text-red-600">Não foi possível carregar o placar.</p>
+            } @else {
+                <ol class="flex flex-col gap-3">
+                    @for (item of placar(); track item.livroId; let pos = $index) {
+                        <li class="flex items-start gap-3">
+                            <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+                                [class.bg-brand]="pos === 0" [class.text-white]="pos === 0"
+                                [class.bg-gray-100]="pos > 0" [class.text-gray-600]="pos > 0">
+                                {{ pos + 1 }}
+                            </span>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-baseline justify-between gap-2">
+                                    <a [routerLink]="['/livro', item.livroId]" class="truncate text-sm font-medium text-gray-900 hover:text-brand hover:underline" [title]="item.titulo">{{ item.titulo }}</a>
+                                    <span class="shrink-0 text-xs tabular-nums text-gray-600">{{ item.total }}×</span>
+                                </div>
+                                <div class="mt-1 h-2 w-full rounded-full" [class.trilho-emprestimo]="placarAtivo() === 'emprestimos'" [class.trilho-reserva]="placarAtivo() === 'reservas'">
+                                    <div class="h-2 rounded-full"
+                                        [class.amostra-emprestimo]="placarAtivo() === 'emprestimos'" [class.amostra-reserva]="placarAtivo() === 'reservas'"
+                                        [style.width.%]="(item.total / maiorDoPlacar()) * 100"></div>
+                                </div>
+                            </div>
+                        </li>
+                    } @empty {
+                        <li class="py-8 text-center text-sm text-gray-500">
+                            Nenhum{{ placarAtivo() === 'emprestimos' ? ' empréstimo' : 'a reserva' }} neste semestre ainda.
+                        </li>
+                    }
+                </ol>
+            }
+        </article>
+
+        <!-- Card 3: prazos da semana -->
+        <article class="rounded-xl bg-white p-5 shadow-md lg:col-span-2" aria-labelledby="titulo-prazos">
+            <header class="mb-3 flex items-start justify-between gap-3">
+                <div>
+                    <h2 id="titulo-prazos" class="text-base font-semibold text-gray-900">Devoluções desta semana</h2>
+                    <p class="text-xs text-gray-500">{{ semana.inicio | date:'dd/MM' }} a {{ semana.ultimoDia | date:'dd/MM' }}</p>
+                </div>
+                <a routerLink="/solicitacoes" class="shrink-0 text-xs font-medium text-brand hover:underline">Ver empréstimos</a>
+            </header>
+
+            @if (carregandoMovimento()) {
+                <p class="py-10 text-center text-sm text-gray-500">Carregando...</p>
+            } @else if (erroMovimento()) {
+                <p class="py-10 text-center text-sm text-red-600">Não foi possível carregar os prazos.</p>
+            } @else {
+                @if (atrasadosAnteriores() > 0) {
+                    <p role="status" class="mb-3 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                        <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z" />
+                        </svg>
+                        {{ atrasadosAnteriores() }} {{ atrasadosAnteriores() === 1 ? 'empréstimo está atrasado' : 'empréstimos estão atrasados' }} desde semanas anteriores.
+                    </p>
+                }
+
+                <ul class="divide-y divide-gray-100">
+                    @for (e of vencendoNaSemana(); track e.emprestimoId) {
+                        @let situacao = situacaoPrazo(e);
+                        <li class="flex items-center gap-3 py-2.5">
+                            <div class="flex w-12 shrink-0 flex-col items-center rounded-lg bg-gray-50 py-1">
+                                <span class="text-sm font-bold leading-tight text-gray-900">{{ e.dataDevolucaoPrevista | date:'dd' }}</span>
+                                <span class="text-[10px] uppercase text-gray-500">{{ diaSemana(e.dataDevolucaoPrevista) }}</span>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="truncate text-sm font-medium text-gray-900" [title]="e.titulo">{{ e.titulo }}</p>
+                                <p class="truncate text-xs text-gray-500">{{ e.nomeLeitor }} · exemplar {{ e.tombo }}</p>
+                            </div>
+                            @switch (situacao) {
+                                @case ('atrasado') {
+                                    <span class="flex shrink-0 items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-medium text-red-700">
+                                        <svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M12 8v5m0 3h.01" /><circle cx="12" cy="12" r="9" /></svg>
+                                        Atrasado
+                                    </span>
+                                }
+                                @case ('hoje') {
+                                    <span class="flex shrink-0 items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-800">
+                                        <svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path stroke-linecap="round" d="M12 7v5l3 2" /></svg>
+                                        Vence hoje
+                                    </span>
+                                }
+                                @default {
+                                    <span class="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600">No prazo</span>
+                                }
+                            }
+                        </li>
+                    } @empty {
+                        <li class="py-8 text-center text-sm text-gray-500">Nenhuma devolução prevista para esta semana.</li>
+                    }
+                </ul>
+            }
+        </article>
+
+        <!-- Card 4: usuários recentes -->
+        <article class="rounded-xl bg-white p-5 shadow-md" aria-labelledby="titulo-usuarios">
+            <header class="mb-3 flex items-start justify-between gap-3">
+                <div>
+                    <h2 id="titulo-usuarios" class="text-base font-semibold text-gray-900">Cadastros recentes</h2>
+                    <p class="text-xs text-gray-500">Últimos leitores cadastrados</p>
+                </div>
+                <a routerLink="/usuarios" class="shrink-0 text-xs font-medium text-brand hover:underline">Ver todos</a>
+            </header>
+
+            @if (carregandoLeitores()) {
+                <p class="py-10 text-center text-sm text-gray-500">Carregando...</p>
+            } @else if (erroLeitores()) {
+                <p class="py-10 text-center text-sm text-red-600">Não foi possível carregar os usuários.</p>
+            } @else {
+                <ul class="flex flex-col gap-3">
+                    @for (leitor of leitoresRecentes(); track leitor.id) {
+                        <li class="flex items-center gap-3">
+                            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-dark/10 text-sm font-bold text-brand-dark">
+                                {{ leitor.nome.charAt(0).toUpperCase() }}
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="truncate text-sm font-medium text-gray-900">{{ leitor.nome }}</p>
+                                <p class="truncate text-xs text-gray-500">{{ leitor.email }}</p>
+                            </div>
+                            <span class="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600">{{ rotulo(leitor.tipoLeitor) }}</span>
+                        </li>
+                    } @empty {
+                        <li class="py-8 text-center text-sm text-gray-500">Nenhum leitor cadastrado.</li>
+                    }
+                </ul>
+            }
+        </article>
+    </div>
+</section>

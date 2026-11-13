@@ -10,7 +10,8 @@ export interface Reserva {
     status: ReservaStatus,
     exemplarId: number | null,
     tombo: string | null,
-    dataLimiteRetirada: string | null
+    dataLimiteRetirada: string | null,
+    renovacoes?: number
 }
 
 export interface ReservaRequest {
